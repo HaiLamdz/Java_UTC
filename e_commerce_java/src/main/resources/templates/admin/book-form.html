@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${bookForm.id == null ? 'Thêm Sách Mới' : 'Chỉnh Sửa Sách'} + ' - Admin BookStore'">Quản Lý Sách</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar(${bookForm.id == null ? 'new-book' : 'books'})}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar(${bookForm.id == null ? 'Thêm Sách Mới' : 'Sửa Sách'}, 'Quản lý kho')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Page Title -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;" 
+                        th:text="${bookForm.id == null ? 'Thêm Đầu Sách Mới Kèm Biến Thể' : 'Chỉnh Sửa Sách &amp; Các Phiên Bản'}">
+                        Thêm Sách Mới
+                    </h1>
+                    <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                        Điền thông tin tác phẩm và cấu hình từng biến thể (bìa mềm, bìa cứng, bản đặc biệt) kèm tồn kho.
+                    </p>
+                </div>
+                <a href="/admin/books" class="admin-btn admin-btn-secondary">
+                    &larr; Quay lại danh sách
+                </a>
+            </div>
+
+            <form action="/admin/books/save" method="POST" th:object="${bookForm}">
+                <input type="hidden" th:field="*{id}">
+
+                <!-- CARD 1: THÔNG TIN CƠ BẢN -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">1. Thông Tin Chung Đầu Sách</h3>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                Tên sách <span style="color:#b91c1c">*</span>
+                            </label>
+                            <input type="text" th:field="*{title}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" placeholder="Nhập tên sách đầy đủ..." required>
+                            <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 18px;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Tác giả <span style="color:#b91c1c">*</span>
+                                </label>
+                                <input type="text" th:field="*{author}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" placeholder="Tên tác giả..." required>
+                                <div th:if="${#fields.hasErrors('author')}" th:errors="*{author}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Thể loại sách <span style="color:#b91c1c">*</span>
+                                </label>
+                                <select th:field="*{categoryId}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem; background: #fff;" required>
+                                    <option value="">-- Chọn thể loại --</option>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Thể loại</option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 18px;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">Nhà xuất bản</label>
+                                <input type="text" th:field="*{publisher}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" placeholder="Ví dụ: NXB Hội Nhà Văn">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">Năm xuất bản</label>
+                                <input type="number" th:field="*{publishYear}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" placeholder="2024">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">Mã ISBN</label>
+                                <input type="text" th:field="*{isbn}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" placeholder="978-604-...">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">Đường dẫn ảnh bìa sách (URL)</label>
+                            <input type="text" th:field="*{imageUrl}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" placeholder="https://images.unsplash.com/photo-...">
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">Mô tả nội dung tác phẩm</label>
+                            <textarea th:field="*{description}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" rows="4" placeholder="Nhập tóm tắt nội dung cuốn sách..."></textarea>
+                        </div>
+
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" th:field="*{featured}" style="width: 16px; height: 16px;">
+                                <span style="font-size: 0.88rem; font-weight: 600; color: var(--admin-text-main);">Đánh dấu là Sách nổi bật (hiển thị trang chủ)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: BẢNG QUẢN LÝ BIẾN THỂ -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <div>
+                            <h3 class="admin-card-title">2. Danh Sách Biến Thể Của Sách (Book Variants)</h3>
+                            <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                Mỗi cuốn sách cần tối thiểu 1 biến thể (Bìa mềm). Có thể thêm Bìa cứng, Bản đặc biệt...
+                            </p>
+                        </div>
+                        <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="addVariantRow()">
+                            Thêm biến thể mới
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Tên phiên bản / Biến thể <span style="color:#b91c1c">*</span></th>
+                                    <th>Mã SKU kho</th>
+                                    <th>Giá bán (VNĐ) <span style="color:#b91c1c">*</span></th>
+                                    <th>Giá bìa gốc (VNĐ)</th>
+                                    <th style="width: 120px;">Tồn kho <span style="color:#b91c1c">*</span></th>
+                                    <th style="text-align: center; width: 90px;">Mặc định</th>
+                                    <th style="text-align: right; width: 70px;">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variantsTbody">
+                                <tr th:each="v, iterStat : *{variants}">
+                                    <td>
+                                        <input type="hidden" th:field="*{variants[__${iterStat.index}__].id}">
+                                        <input type="text" th:field="*{variants[__${iterStat.index}__].variantName}" 
+                                               style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="Ví dụ: Bìa mềm" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" th:field="*{variants[__${iterStat.index}__].sku}" 
+                                               style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem; font-family: monospace;" placeholder="SKU-BM-01">
+                                    </td>
+                                    <td>
+                                        <input type="number" th:field="*{variants[__${iterStat.index}__].price}" 
+                                               style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="100000" min="0" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" th:field="*{variants[__${iterStat.index}__].originalPrice}" 
+                                               style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="120000" min="0">
+                                    </td>
+                                    <td>
+                                        <input type="number" th:field="*{variants[__${iterStat.index}__].stockQuantity}" 
+                                               style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="20" min="0" required>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <input type="radio" name="defaultRadio" 
+                                               th:checked="*{variants[__${iterStat.index}__].isDefault}"
+                                               onclick="setDefaultVariant(this)" style="cursor: pointer; width: 16px; height: 16px;">
+                                        <input type="hidden" th:field="*{variants[__${iterStat.index}__].isDefault}" class="is-default-hidden">
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <button type="button" class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeVariantRow(this)" title="Xóa biến thể này">
+                                            Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SUBMIT BUTTONS -->
+                <div style="display: flex; gap: 14px; margin-bottom: 40px;">
+                    <button type="submit" class="admin-btn admin-btn-primary" style="padding: 10px 24px;">
+                        Lưu Thông Tin Sách &amp; Biến Thể
+                    </button>
+                    <a href="/admin/books" class="admin-btn admin-btn-secondary" style="padding: 10px 20px;">
+                        Hủy Bỏ
+                    </a>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT XỬ LÝ DÒNG BIẾN THỂ -->
+    <script>
+        function addVariantRow() {
+            const tbody = document.getElementById('variantsTbody');
+            const newIndex = tbody.children.length;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <input type="text" name="variants[${newIndex}].variantName" style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="Ví dụ: Bìa cứng cao cấp" required>
+                </td>
+                <td>
+                    <input type="text" name="variants[${newIndex}].sku" style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem; font-family: monospace;" placeholder="SKU-BC-02">
+                </td>
+                <td>
+                    <input type="number" name="variants[${newIndex}].price" style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="150000" min="0" required>
+                </td>
+                <td>
+                    <input type="number" name="variants[${newIndex}].originalPrice" style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" placeholder="180000" min="0">
+                </td>
+                <td>
+                    <input type="number" name="variants[${newIndex}].stockQuantity" style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;" value="10" min="0" required>
+                </td>
+                <td style="text-align: center;">
+                    <input type="radio" name="defaultRadio" onclick="setDefaultVariant(this)" style="cursor: pointer; width: 16px; height: 16px;">
+                    <input type="hidden" name="variants[${newIndex}].isDefault" value="false" class="is-default-hidden">
+                </td>
+                <td style="text-align: right;">
+                    <button type="button" class="admin-btn admin-btn-danger admin-btn-sm" onclick="removeVariantRow(this)" title="Xóa biến thể này">
+                        Xóa
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function removeVariantRow(button) {
+            const tbody = document.getElementById('variantsTbody');
+            if (tbody.children.length <= 1) {
+                alert('Mỗi cuốn sách phải có tối thiểu 1 biến thể!');
+                return;
+            }
+            const tr = button.closest('tr');
+            tr.remove();
+            reindexVariants();
+        }
+
+        function reindexVariants() {
+            const tbody = document.getElementById('variantsTbody');
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach((row, idx) => {
+                row.querySelectorAll('input').forEach(input => {
+                    if (input.name && input.name.startsWith('variants[')) {
+                        input.name = input.name.replace(/variants\[\d+\]/, `variants[${idx}]`);
+                    }
+                });
+            });
+        }
+
+        function setDefaultVariant(radio) {
+            const allHidden = document.querySelectorAll('.is-default-hidden');
+            allHidden.forEach(h => h.value = 'false');
+            const row = radio.closest('tr');
+            const hidden = row.querySelector('.is-default-hidden');
+            if (hidden) {
+                hidden.value = 'true';
+            }
+        }
+    </script>
+</body>
+</html>

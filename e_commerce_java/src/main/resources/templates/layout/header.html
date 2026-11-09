@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header th:fragment="header" class="header">
+    <!-- Top Utility Bar -->
+    <div class="top-bar">
+        <div class="container top-bar-inner">
+            <div class="top-bar-item">
+                <span>Nhà sách trực tuyến &bull; Giao hàng toàn quốc</span>
+            </div>
+            <div class="top-bar-item">
+                <a href="/books">Danh mục sách</a>
+                <span class="top-bar-divider"></span>
+                <th:block th:if="${currentUser != null}">
+                    <span>Xin chào, <strong th:text="${currentUser.fullName}">Bạn đọc</strong></span>
+                    <span class="top-bar-divider"></span>
+                    <a href="/my-orders">Đơn hàng của tôi</a>
+                    <span class="top-bar-divider"></span>
+                    <a href="/logout">Đăng xuất</a>
+                </th:block>
+                <th:block th:if="${currentUser == null}">
+                    <a href="/login">Đăng nhập</a>
+                    <span class="top-bar-divider"></span>
+                    <a href="/register">Đăng ký</a>
+                </th:block>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Masthead -->
+    <div class="container">
+        <nav class="navbar">
+            <!-- Pure Typographic Wordmark -->
+            <a href="/" class="logo">
+                <span class="logo-name">BOOKSTORE</span>
+                <span class="logo-sub">Ấn Bản &amp; Tri Thức</span>
+            </a>
+
+            <!-- Clean Search Input -->
+            <form action="/books" method="GET" class="search-bar">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm tên sách, tác giả, nhà xuất bản...">
+                <button type="submit" class="search-submit" aria-label="Tìm kiếm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Right Navigation & Cart -->
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link">Trang chủ</a></li>
+                <li><a href="/books" class="nav-link">Tủ sách</a></li>
+                <li th:if="${currentUser != null}">
+                    <a href="/my-orders" class="nav-link">Đơn đã mua</a>
+                </li>
+                <li>
+                    <a href="/cart" class="cart-btn" aria-label="Giỏ hàng">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <span>Giỏ hàng</span>
+                        <span class="cart-badge" th:text="${cartCount}">0</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Category Sub-navigation Strip -->
+    <div class="category-nav-strip" th:if="${globalCategories != null && !globalCategories.isEmpty()}">
+        <div class="container category-nav-inner">
+            <a href="/books" class="category-nav-item">Tất cả tác phẩm</a>
+            <a th:each="cat : ${globalCategories}"
+               th:href="@{/books(categoryId=${cat.id})}"
+               th:text="${cat.name}"
+               class="category-nav-item">Thể loại</a>
+        </div>
+    </div>
+</header>
+
+</body>
+</html>

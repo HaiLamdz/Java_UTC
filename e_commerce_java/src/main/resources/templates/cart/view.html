@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ Hàng Của Bạn - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="container" style="margin-top: 28px; margin-bottom: 60px;">
+        <!-- Alerts Fragment -->
+        <div th:replace="~{layout/alerts :: alerts}"></div>
+
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">Giỏ Hàng Mua Sách</h1>
+                <p class="section-subtitle">Xem lại các tác phẩm và phiên bản ấn phẩm bạn đã chọn</p>
+            </div>
+            <a href="/books" class="btn btn-secondary btn-sm">&larr; Tiếp tục chọn sách</a>
+        </div>
+
+        <!-- GIỎ HÀNG TRỐNG -->
+        <div th:if="${cart.empty}" style="text-align: center; padding: 72px 20px; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--paper-border);">
+            <div style="width: 54px; height: 54px; margin: 0 auto 16px; color: var(--ink-400);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </div>
+            <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: var(--ink-800); margin-bottom: 8px;">Giỏ hàng của bạn đang trống</h2>
+            <p style="color: var(--ink-500); margin-bottom: 24px; font-size: 0.9rem;">Hãy khám phá các tác phẩm tuyển tập của BookStore và chọn cho mình cuốn sách ưng ý.</p>
+            <a href="/books" class="btn btn-primary">Khám phá kho sách ngay</a>
+        </div>
+
+        <!-- DANH SÁCH SẢN PHẨM TRONG GIỎ HÀNG -->
+        <div th:unless="${cart.empty}" class="cart-grid-layout">
+            <div class="cart-table-card">
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm &amp; Phiên bản</th>
+                            <th>Đơn giá</th>
+                            <th style="width: 140px;">Số lượng</th>
+                            <th>Thành tiền</th>
+                            <th style="text-align: center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${cart.items}">
+                            <!-- Tên sách + Phiên bản biến thể -->
+                            <td>
+                                <div class="cart-item-info">
+                                    <img th:src="${item.bookImage}" th:alt="${item.bookTitle}" class="cart-item-thumb">
+                                    <div>
+                                        <a th:href="@{/books/{id}(id=${item.bookId})}" 
+                                           style="font-weight: 600; color: var(--ink-900); font-size: 0.95rem;" 
+                                           th:text="${item.bookTitle}">Tên sách</a>
+                                        <div style="margin-top: 4px;">
+                                            <span style="font-size: 0.75rem; background: var(--paper-subtle); border: 1px solid var(--paper-border); padding: 2px 8px; border-radius: var(--radius-xs); color: var(--ink-700); font-weight: 600;" 
+                                                  th:text="'Bìa: ' + ${item.variantName}">Bìa mềm</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Đơn giá của biến thể -->
+                            <td>
+                                <strong style="color: var(--ink-900);" th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                            </td>
+
+                            <!-- Cập nhật số lượng -->
+                            <td>
+                                <form action="/cart/update" method="POST" style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="hidden" name="variantId" th:value="${item.variantId}">
+                                    <input type="number" name="quantity" th:value="${item.quantity}" min="1" 
+                                           th:max="${item.stockQuantity}"
+                                           style="width: 52px; padding: 6px; border: 1px solid var(--paper-border); border-radius: var(--radius-xs); text-align: center; font-weight: 600; font-size: 0.88rem;">
+                                    <button type="submit" class="btn btn-secondary btn-sm" title="Cập nhật số lượng">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px;">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </td>
+
+                            <!-- Thành tiền -->
+                            <td>
+                                <strong style="color: var(--terracotta); font-size: 1rem;" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                            </td>
+
+                            <!-- Nút Xóa -->
+                            <td style="text-align: center;">
+                                <a th:href="@{/cart/remove/{variantId}(variantId=${item.variantId})}" 
+                                   onclick="return confirm('Bạn có chắc chắn muốn bỏ cuốn sách phiên bản này khỏi giỏ?')"
+                                   class="btn btn-secondary btn-sm" 
+                                   style="color: var(--crimson); padding: 6px 10px;"
+                                   title="Xóa khỏi giỏ">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TỔNG KẾT & TIẾN HÀNH THANH TOÁN -->
+            <div class="cart-summary-card">
+                <h3>Tóm Tắt Đơn Hàng</h3>
+
+                <div class="summary-row">
+                    <span>Tổng số lượng sách:</span>
+                    <strong th:text="${cart.totalQuantity} + ' cuốn'">0 cuốn</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Tạm tính tiền sách:</span>
+                    <span th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>Phí vận chuyển:</span>
+                    <span style="color: var(--forest); font-weight: 600;">Miễn phí (Toàn quốc)</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>Tổng thanh toán:</span>
+                    <strong style="color: var(--terracotta); font-size: 1.35rem;" th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <a href="/checkout" class="btn btn-primary btn-block btn-lg">
+                        Tiến Hành Thanh Toán &rarr;
+                    </a>
+                </div>
+
+                <div style="margin-top: 14px; text-align: center;">
+                    <a href="/cart/clear" onclick="return confirm('Bạn có chắc chắn muốn làm trống toàn bộ giỏ hàng?')" 
+                       style="font-size: 0.8rem; color: var(--ink-500);">
+                        Làm trống giỏ hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

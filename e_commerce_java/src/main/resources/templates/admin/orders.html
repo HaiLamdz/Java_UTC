@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đơn Hàng - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar('orders')}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar('Danh Sách Đơn Hàng', 'Kinh doanh')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Page Title -->
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Đơn Hàng Đặt Mua</h1>
+                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    Theo dõi tiến độ đơn sách và cập nhật trạng thái giao hàng cho khách hàng.
+                </p>
+            </div>
+
+            <!-- Orders Table Card -->
+            <div class="admin-card">
+                <div th:if="${orders.isEmpty()}" style="padding: 48px; text-align: center; color: var(--admin-text-muted);">
+                    <div style="width: 44px; height: 44px; margin: 0 auto 12px; color: var(--admin-text-light);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                    </div>
+                    Chưa có đơn hàng nào trong hệ thống.
+                </div>
+
+                <div th:unless="${orders.isEmpty()}" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng &amp; SĐT</th>
+                                <th>Địa chỉ giao hàng</th>
+                                <th>Tổng tiền</th>
+                                <th>Thời gian</th>
+                                <th>Trạng thái hiện tại</th>
+                                <th style="text-align: right;">Cập nhật trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${orders}">
+                                <td>
+                                    <strong style="color: #0f172a; font-family: monospace;" th:text="${order.orderCode}">ORD-123</strong>
+                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted);" th:text="${order.paymentMethod}">COD</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600; color: #0f172a;" th:text="${order.customerName}">Nguyễn Văn A</div>
+                                    <div style="font-size: 0.78rem; color: var(--admin-text-muted);" th:text="${order.customerPhone}">0912345678</div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.82rem; max-width: 240px; line-height: 1.4; color: #334155;" th:text="${order.shippingAddress}">Hà Nội</div>
+                                </td>
+                                <td>
+                                    <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted);" th:text="${order.totalItemQuantity} + ' cuốn'">2 cuốn</div>
+                                </td>
+                                <td style="font-size: 0.8rem; color: var(--admin-text-muted);" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                                <td>
+                                    <span th:class="'admin-status-badge ' + ${order.orderStatus.badgeClass}" th:text="${order.orderStatus.displayName}">Chờ xử lý</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="POST" style="display: inline-flex; align-items: center; gap: 6px;">
+                                        <select name="status" style="padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); background: #ffffff;">
+                                            <option th:each="st : ${statuses}"
+                                                    th:value="${st.name()}"
+                                                    th:text="${st.displayName}"
+                                                    th:selected="${order.orderStatus == st}">
+                                            </option>
+                                        </select>
+                                        <button type="submit" class="admin-btn admin-btn-secondary admin-btn-sm">
+                                            Cập nhật
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${book.title} + ' - BookStore Nhà Sách'">Chi tiết tác phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="container">
+        <!-- Alerts Fragment -->
+        <div th:replace="~{layout/alerts :: alerts}"></div>
+
+        <!-- Breadcrumb Trail -->
+        <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+            <a href="/">Trang chủ</a>
+            <span class="breadcrumb-sep">/</span>
+            <a href="/books">Tất cả sách</a>
+            <span class="breadcrumb-sep">/</span>
+            <a th:if="${book.category != null}" th:href="@{/books(categoryId=${book.category.id})}" th:text="${book.category.name}">Thể loại</a>
+            <span class="breadcrumb-sep" th:if="${book.category != null}">/</span>
+            <span th:text="${book.title}" style="color: var(--ink-900); font-weight: 600;">Tiêu đề</span>
+        </nav>
+
+        <!-- Product Detail Layout -->
+        <div class="detail-layout">
+            <!-- Left Column: Book Cover & Assurances -->
+            <div class="detail-cover-col">
+                <img th:src="${book.imageUrl}" th:alt="${book.title}" class="detail-cover-img" id="productCoverImg">
+
+                <div class="detail-assurances">
+                    <div class="detail-assurance-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        <span>Sách chính hãng 100% nguyên màng co</span>
+                    </div>
+                    <div class="detail-assurance-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="3" width="15" height="13"></rect>
+                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                        </svg>
+                        <span>Bọc xốp chống sốc 3 lớp an toàn khi vận chuyển</span>
+                    </div>
+                    <div class="detail-assurance-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Hỗ trợ 1 đổi 1 trong 7 ngày nếu lỗi in ấn</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Info, Variant Selector & Actions -->
+            <div class="detail-info-col">
+                <span class="detail-category-badge" th:text="${book.category != null ? book.category.name : 'Sách Tuyển Chọn'}">Thể loại</span>
+                <h1 class="detail-book-title" th:text="${book.title}">Tên cuốn sách</h1>
+
+                <div class="detail-meta-list">
+                    <div>Tác giả: <strong th:text="${book.author}">Tác giả</strong></div>
+                    <div th:if="${book.publisher != null}">NXB: <strong th:text="${book.publisher}">NXB</strong></div>
+                    <div th:if="${book.publishYear != null}">Năm xuất bản: <strong th:text="${book.publishYear}">2024</strong></div>
+                    <div th:if="${book.isbn != null}">Mã ISBN: <strong th:text="${book.isbn}">ISBN</strong></div>
+                </div>
+
+                <!-- CORE VARIANT SELECTOR -->
+                <div class="variant-module">
+                    <div class="variant-module-header">
+                        <span class="variant-module-label">Phiên bản bìa đang chọn:</span>
+                        <span class="variant-selected-name" id="selectedVariantName" th:text="${defaultVariant.variantName}">Bìa mềm</span>
+                    </div>
+
+                    <!-- Variant Selection Pills -->
+                    <div class="variant-pills-grid">
+                        <button type="button"
+                                th:each="v : ${book.variants}"
+                                th:class="'variant-pill-btn ' + (${v.id == defaultVariant.id} ? 'active' : '')"
+                                th:data-id="${v.id}"
+                                th:data-name="${v.variantName}"
+                                th:data-sku="${v.sku}"
+                                th:data-price="${v.price}"
+                                th:data-original-price="${v.originalPrice}"
+                                th:data-stock="${v.stockQuantity}"
+                                th:data-discount="${v.discountPercent}"
+                                onclick="selectVariant(this)">
+                            <span class="variant-pill-name" th:text="${v.variantName}">Bìa mềm</span>
+                            <span class="variant-pill-price" th:text="${#numbers.formatDecimal(v.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC PRICE DISPLAY -->
+                <div class="detail-price-strip">
+                    <span class="detail-price-main" id="displayPrice"
+                          th:text="${#numbers.formatDecimal(defaultVariant.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</span>
+
+                    <span class="detail-price-original" id="displayOriginalPrice"
+                          th:if="${defaultVariant.originalPrice != null && defaultVariant.originalPrice > defaultVariant.price}"
+                          th:text="${#numbers.formatDecimal(defaultVariant.originalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">120.000 đ</span>
+
+                    <span class="detail-discount-tag" id="displayDiscountTag"
+                          th:if="${defaultVariant.discountPercent > 0}"
+                          th:text="'-' + ${defaultVariant.discountPercent} + '%'">-15%</span>
+                </div>
+
+                <!-- STOCK & SKU INFO -->
+                <div class="detail-sku-strip">
+                    <span>Mã định danh SKU: <code class="detail-sku-code" id="displaySku" th:text="${defaultVariant.sku}">SKU-01</code></span>
+                    <span>&bull;</span>
+                    <span>Trạng thái: 
+                        <strong id="displayStockStatus" 
+                                th:style="${defaultVariant.inStock} ? 'color: var(--forest);' : 'color: var(--crimson);'"
+                                th:text="${defaultVariant.inStock} ? ('Còn hàng (' + ${defaultVariant.stockQuantity} + ' cuốn)') : 'Tạm hết phiên bản này'">
+                            Còn hàng
+                        </strong>
+                    </span>
+                </div>
+
+                <!-- ADD TO CART ACTION -->
+                <form action="/cart/add" method="POST" id="addToCartForm">
+                    <input type="hidden" name="bookId" th:value="${book.id}">
+                    <input type="hidden" name="variantId" id="inputVariantId" th:value="${defaultVariant.id}">
+
+                    <div class="detail-actions-row">
+                        <!-- Quantity Picker -->
+                        <div class="qty-stepper">
+                            <button type="button" onclick="adjustQty(-1)" aria-label="Giảm số lượng">&minus;</button>
+                            <input type="number" id="inputQuantity" name="quantity" value="1" min="1" 
+                                   th:max="${defaultVariant.stockQuantity}" readonly>
+                            <button type="button" onclick="adjustQty(1)" aria-label="Tăng số lượng">&plus;</button>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div style="flex: 1;">
+                            <button type="submit" class="btn btn-primary btn-block" style="height: 48px;" id="btnAddToCart"
+                                    th:disabled="${!defaultVariant.inStock}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
+                                <span id="btnAddToCartText">Thêm Vào Giỏ Hàng</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- DESCRIPTION -->
+                <div class="detail-description-section">
+                    <h3>Giới Thiệu Nội Dung Tác Phẩm</h3>
+                    <div class="detail-description-text" th:text="${book.description}">
+                        Mô tả chi tiết cuốn sách...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <!-- JAVASCRIPT XỬ LÝ CHỌN BIẾN THỂ DYNAMIC -->
+    <script>
+        function selectVariant(button) {
+            document.querySelectorAll('.variant-pill-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const variantId = button.dataset.id;
+            const name = button.dataset.name;
+            const sku = button.dataset.sku;
+            const price = parseFloat(button.dataset.price);
+            const originalPrice = button.dataset.originalPrice ? parseFloat(button.dataset.originalPrice) : null;
+            const stock = parseInt(button.dataset.stock);
+            const discount = parseInt(button.dataset.discount || 0);
+
+            document.getElementById('selectedVariantName').innerText = name;
+            document.getElementById('displaySku').innerText = sku || 'Chưa có';
+
+            const formattedPrice = new Intl.NumberFormat('vi-VN').format(price) + ' đ';
+            document.getElementById('displayPrice').innerText = formattedPrice;
+
+            const origElem = document.getElementById('displayOriginalPrice');
+            const discElem = document.getElementById('displayDiscountTag');
+            if (originalPrice && originalPrice > price) {
+                const formattedOrig = new Intl.NumberFormat('vi-VN').format(originalPrice) + ' đ';
+                if (origElem) {
+                    origElem.innerText = formattedOrig;
+                    origElem.style.display = 'inline';
+                }
+                if (discElem) {
+                    discElem.innerText = '-' + discount + '%';
+                    discElem.style.display = 'inline-block';
+                }
+            } else {
+                if (origElem) origElem.style.display = 'none';
+                if (discElem) discElem.style.display = 'none';
+            }
+
+            const stockElem = document.getElementById('displayStockStatus');
+            const btnAdd = document.getElementById('btnAddToCart');
+            const btnText = document.getElementById('btnAddToCartText');
+            const qtyInput = document.getElementById('inputQuantity');
+
+            if (stock > 0) {
+                stockElem.innerText = 'Còn hàng (' + stock + ' cuốn)';
+                stockElem.style.color = 'var(--forest)';
+                btnAdd.disabled = false;
+                btnText.innerText = 'Thêm Vào Giỏ Hàng';
+                qtyInput.max = stock;
+                if (parseInt(qtyInput.value) > stock) {
+                    qtyInput.value = stock;
+                }
+            } else {
+                stockElem.innerText = 'Tạm hết phiên bản này';
+                stockElem.style.color = 'var(--crimson)';
+                btnAdd.disabled = true;
+                btnText.innerText = 'Tạm thời hết phiên bản này';
+            }
+
+            document.getElementById('inputVariantId').value = variantId;
+        }
+
+        function adjustQty(amount) {
+            const input = document.getElementById('inputQuantity');
+            let current = parseInt(input.value) || 1;
+            let max = parseInt(input.max) || 999;
+            let newVal = current + amount;
+            if (newVal >= 1 && newVal <= max) {
+                input.value = newVal;
+            }
+        }
+    </script>
+</body>
+</html>

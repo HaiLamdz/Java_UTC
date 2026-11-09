@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <a href="/" class="logo" style="margin-bottom: 14px; display: inline-flex;">
+                    <span class="logo-name">BOOKSTORE</span>
+                    <span class="logo-sub">Ấn Bản &amp; Tri Thức</span>
+                </a>
+                <p style="font-size: 0.86rem; line-height: 1.7; color: var(--ink-600); max-width: 340px;">
+                    Hiệu sách phát hành các tác phẩm văn học, kinh tế, công nghệ và học thuật. Cung cấp đầy đủ các phiên bản bìa mềm tiêu chuẩn, bìa cứng khâu chỉ và ấn bản sưu tầm.
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Chuyên mục sách</h4>
+                <ul>
+                    <li th:each="cat : ${globalCategories}">
+                        <a th:href="@{/books(categoryId=${cat.id})}" th:text="${cat.name}">Tên thể loại</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Dành cho bạn đọc</h4>
+                <ul>
+                    <li><a href="/books">Tra cứu danh mục sách</a></li>
+                    <li><a href="/cart">Giỏ hàng</a></li>
+                    <li><a href="/my-orders">Theo dõi đơn hàng</a></li>
+                    <li><a href="/login">Đăng nhập tài khoản</a></li>
+                    <li><a href="/register">Đăng ký thành viên</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Liên hệ</h4>
+                <ul style="font-size: 0.85rem; color: var(--ink-600); line-height: 1.8;">
+                    <li>128 Nguyễn Trãi, Thanh Xuân, Hà Nội</li>
+                    <li>Điện thoại: (024) 3858 6868</li>
+                    <li>Email: banphathanh@bookstore.vn</li>
+                    <li>Giờ mở cửa: 08:30 &ndash; 21:30 hàng ngày</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 BookStore. Bảo lưu mọi quyền.</p>
+            <p>Thanh toán khi nhận hàng (COD) hoặc chuyển khoản ngân hàng.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

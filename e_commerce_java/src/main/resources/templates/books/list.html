@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tủ Sách &amp; Ấn Bản &mdash; BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="container" style="margin-top: 32px; margin-bottom: 64px;">
+        <!-- Alerts Fragment -->
+        <div th:replace="~{layout/alerts :: alerts}"></div>
+
+        <!-- BỘ LỌC TÌM KIẾM & THỂ LOẠI -->
+        <div class="catalog-filter-bar">
+            <form action="/books" method="GET" class="catalog-filter-form">
+                <div class="catalog-filter-field">
+                    <label class="form-label">Chuyên mục</label>
+                    <select name="categoryId" class="form-control">
+                        <option value="">Tất cả thể loại</option>
+                        <option th:each="cat : ${globalCategories}"
+                                th:value="${cat.id}"
+                                th:text="${cat.name}"
+                                th:selected="${selectedCategoryId != null && selectedCategoryId == cat.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="catalog-filter-field catalog-filter-search">
+                    <label class="form-label">Tìm kiếm tác phẩm</label>
+                    <input type="text" name="keyword" th:value="${keyword}" class="form-control" placeholder="Nhập tựa sách hoặc tên tác giả...">
+                </div>
+
+                <div class="catalog-filter-actions">
+                    <button type="submit" class="btn btn-primary">Tìm sách</button>
+                    <a href="/books" class="btn btn-secondary">Xóa lọc</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- DANH SÁCH SÁCH -->
+        <div>
+            <div class="section-header" style="margin-bottom: 28px;">
+                <div>
+                    <h1 class="section-title">Danh Mục Tác Phẩm</h1>
+                    <p class="section-subtitle">
+                        Hiển thị <strong th:text="${books.size()}">0</strong> đầu sách
+                        <th:block th:if="${keyword != null && !keyword.isEmpty()}">
+                            cho từ khóa &ldquo;<strong th:text="${keyword}"></strong>&rdquo;
+                        </th:block>
+                    </p>
+                </div>
+            </div>
+
+            <div th:if="${books.isEmpty()}" style="text-align: center; padding: 64px 20px; background: #ffffff; border: 1px solid var(--paper-border);">
+                <h3 style="margin-bottom: 8px; color: var(--ink-800); font-family: 'Plus Jakarta Sans', sans-serif;">Không tìm thấy tác phẩm phù hợp</h3>
+                <p style="color: var(--ink-500); margin-bottom: 24px; font-size: 0.9rem;">Vui lòng thử lại với từ khóa khác hoặc xem toàn bộ tủ sách.</p>
+                <a href="/books" class="btn btn-primary btn-sm">Xem toàn bộ sách</a>
+            </div>
+
+            <div class="book-grid" th:unless="${books.isEmpty()}">
+                <article th:each="book : ${books}" class="book-card">
+                    <a th:href="@{/books/{id}(id=${book.id})}" class="book-card-cover-wrap">
+                        <img th:src="${book.imageUrl}" th:alt="${book.title}" class="book-card-cover">
+                        <span class="badge-variant-count" th:if="${book.variants.size() > 1}"
+                              th:text="${book.variants.size()} + ' ấn bản'">3 ấn bản</span>
+                    </a>
+
+                    <div class="book-card-body">
+                        <p class="book-card-author" th:text="${book.author}">Tác giả</p>
+                        <a th:href="@{/books/{id}(id=${book.id})}">
+                            <h3 class="book-card-title" th:text="${book.title}">Tiêu đề sách</h3>
+                        </a>
+                        <div class="book-card-meta">
+                            <span class="book-card-price" th:if="${book.minPrice == book.maxPrice}"
+                                  th:text="${#numbers.formatDecimal(book.minPrice, 0, 'COMMA', 0, 'POINT')} + '₫'">100.000₫</span>
+                            <span class="book-card-price" th:if="${book.minPrice != book.maxPrice}">
+                                <small class="price-prefix">Từ</small>
+                                <span th:text="${#numbers.formatDecimal(book.minPrice, 0, 'COMMA', 0, 'POINT')} + '₫'">85.000₫</span>
+                            </span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

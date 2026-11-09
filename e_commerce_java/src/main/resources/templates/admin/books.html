@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sách &amp; Biến Thể - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar('books')}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar('Kho Sách & Biến Thể', 'Quản lý kho')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Page Header -->
+            <div class="admin-card-header" style="background: transparent; border: none; padding: 0 0 24px;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Danh Sách Sách &amp; Biến Thể Tồn Kho</h1>
+                    <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                        Quản lý chi tiết từng phiên bản ấn phẩm (Bìa mềm, bìa cứng, bản đặc biệt) kèm SKU, giá bán và số lượng tồn.
+                    </p>
+                </div>
+                <a href="/admin/books/new" class="admin-btn admin-btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    <span>Thêm Đầu Sách Mới</span>
+                </a>
+            </div>
+
+            <!-- Table Card -->
+            <div class="admin-card">
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th style="width: 70px;">Bìa sách</th>
+                                <th>Tiêu đề sách &amp; Tác giả</th>
+                                <th>Thể loại</th>
+                                <th>Danh sách Biến thể (Phiên bản | Giá bán | Tồn kho)</th>
+                                <th style="text-align: right; width: 140px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="book : ${books}">
+                                <td style="font-weight: 600; color: var(--admin-text-muted);" th:text="${book.id}">1</td>
+                                <td>
+                                    <img th:src="${book.imageUrl}" th:alt="${book.title}" 
+                                         style="width: 48px; height: 68px; object-fit: cover; border-radius: var(--radius-xs); border: 1px solid var(--admin-border);">
+                                </td>
+                                <td>
+                                    <div>
+                                        <a th:href="@{/admin/books/edit/{id}(id=${book.id})}" 
+                                           style="font-weight: 600; color: #0f172a; text-decoration: none;" th:text="${book.title}">Tên sách</a>
+                                        <div style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;" th:text="'Tác giả: ' + ${book.author}">Tác giả</div>
+                                        <span th:if="${book.featured}" style="display: inline-block; font-size: 0.68rem; background: #fef3c7; color: #b45309; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">Nổi bật</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.78rem; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #334155;" 
+                                          th:text="${book.category != null ? book.category.name : 'Chưa phân loại'}">Thể loại</span>
+                                </td>
+                                <td>
+                                    <!-- CỘT BIẾN THỂ RÕ RÀNG -->
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div th:each="v : ${book.variants}" 
+                                             style="font-size: 0.8rem; background: #f8fafc; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--admin-border); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                                            <div>
+                                                <strong style="color: #0f172a;" th:text="${v.variantName}">Bìa mềm</strong>
+                                                <span th:if="${v.isDefault}" style="color: #2563eb; font-size: 0.72rem; font-weight: 600;">(Mặc định)</span>
+                                                <span style="color: #64748b; font-size: 0.72rem; font-family: monospace;" th:text="'[' + ${v.sku} + ']'">[SKU]</span>
+                                            </div>
+                                            <div style="display: flex; gap: 12px; align-items: center;">
+                                                <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(v.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                                                <span th:style="${v.inStock} ? 'color: #166534; font-weight: 600;' : 'color: #b91c1c; font-weight: 600;'"
+                                                      th:text="'Kho: ' + ${v.stockQuantity}">Kho: 10</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                        <a th:href="@{/admin/books/edit/{id}(id=${book.id})}" class="admin-btn admin-btn-secondary admin-btn-sm" title="Sửa thông tin và biến thể">
+                                            Sửa
+                                        </a>
+                                        <a th:href="@{/admin/books/delete/{id}(id=${book.id})}" 
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa cuốn sách này và tất cả biến thể liên quan?')" 
+                                           class="admin-btn admin-btn-danger admin-btn-sm" title="Xóa sách">
+                                            Xóa
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

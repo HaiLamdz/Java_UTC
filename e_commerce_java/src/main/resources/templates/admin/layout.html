@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- SIDEBAR QUẢN TRỊ VIÊN RIÊNG BIỆT -->
+<aside th:fragment="sidebar(activeMenu)" class="admin-sidebar-wrapper">
+    <!-- Brand -->
+    <a href="/admin" class="admin-brand">
+        <div class="admin-brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+        </div>
+        <div class="admin-brand-text">
+            <h2>BookStore</h2>
+            <span>Hệ Thống Quản Trị</span>
+        </div>
+    </a>
+
+    <!-- Admin User Info Chip -->
+    <div class="admin-profile-chip">
+        <div class="admin-avatar">AD</div>
+        <div class="admin-user-info">
+            <div class="name" th:text="${adminUser != null ? adminUser.fullName : 'Quản Trị Viên'}">Quản Trị Viên</div>
+            <div class="role-badge">&bull; Đang hoạt động</div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <ul class="admin-nav-menu">
+        <li class="admin-menu-heading">Tổng Quan</li>
+        <li>
+            <a href="/admin" th:class="'admin-nav-link ' + (${activeMenu == 'dashboard'} ? 'active' : '')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="9"></rect>
+                    <rect x="14" y="3" width="7" height="5"></rect>
+                    <rect x="14" y="12" width="7" height="9"></rect>
+                    <rect x="3" y="16" width="7" height="5"></rect>
+                </svg>
+                <span>Bảng điều khiển</span>
+            </a>
+        </li>
+
+        <li class="admin-menu-heading">Quản Lý Kho Sách</li>
+        <li>
+            <a href="/admin/books" th:class="'admin-nav-link ' + (${activeMenu == 'books'} ? 'active' : '')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                <span>Sách &amp; Biến thể</span>
+            </a>
+        </li>
+        <li>
+            <a href="/admin/books/new" th:class="'admin-nav-link ' + (${activeMenu == 'new-book'} ? 'active' : '')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                <span>Thêm sách mới</span>
+            </a>
+        </li>
+        <li>
+            <a href="/admin/categories" th:class="'admin-nav-link ' + (${activeMenu == 'categories'} ? 'active' : '')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                <span>Thể loại sách</span>
+            </a>
+        </li>
+
+        <li class="admin-menu-heading">Kinh Doanh</li>
+        <li>
+            <a href="/admin/orders" th:class="'admin-nav-link ' + (${activeMenu == 'orders'} ? 'active' : '')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <span>Quản lý đơn hàng</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- Footer Actions -->
+    <div class="admin-sidebar-footer">
+        <a href="/admin/logout" class="admin-btn admin-btn-danger admin-btn-sm" style="justify-content: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Đăng xuất hệ thống</span>
+        </a>
+    </div>
+</aside>
+
+<!-- TOPBAR QUẢN TRỊ VIÊN RIÊNG BIỆT -->
+<header th:fragment="topbar(pageTitle, breadcrumb)" class="admin-topbar">
+    <div class="admin-breadcrumb">
+        <span>CMS Nội Bộ</span> / 
+        <span th:text="${breadcrumb}">Trang hiện tại</span> / 
+        <strong th:text="${pageTitle}">Tiêu đề</strong>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="background: var(--admin-bg); border: 1px solid var(--admin-border); padding: 5px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; color: var(--admin-text-main);"
+             th:text="${adminUser != null ? 'Tài khoản: ' + adminUser.username : 'Quản trị viên'}">
+            Quản trị viên
+        </div>
+    </div>
+</header>
+
+<!-- ALERTS QUẢN TRỊ -->
+<div th:fragment="alerts" style="margin-bottom: 20px;">
+    <div th:if="${successMessage}" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 12px 16px; border-radius: var(--radius-sm); font-weight: 500; font-size: 0.88rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; flex-shrink: 0;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" style="background: #fef2f2; border: 1px solid #fecdd3; color: #b91c1c; padding: 12px 16px; border-radius: var(--radius-sm); font-weight: 500; font-size: 0.88rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; flex-shrink: 0;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span th:text="${errorMessage}"></span>
+    </div>
+</div>
+
+</body>
+</html>

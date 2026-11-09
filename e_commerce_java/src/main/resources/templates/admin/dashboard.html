@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Quản Trị - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar('dashboard')}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar('Tổng Quan', 'Bảng điều khiển')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Header Title -->
+            <div style="margin-bottom: 28px;">
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Báo Cáo Tổng Quan Cửa Hàng</h1>
+                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    Thống kê trực quan số lượng đầu sách, biến thể tồn kho và tình trạng tiếp nhận đơn hàng.
+                </p>
+            </div>
+
+            <!-- STAT CARDS -->
+            <div class="admin-stat-grid">
+                <!-- Sách -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Đầu Sách Đang Bán</div>
+                        <div class="value" th:text="${totalBooks}">8</div>
+                        <div style="font-size: 0.75rem; color: #166534; font-weight: 600; margin-top: 6px;">Đang hoạt động</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Biến thể -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Tổng Phiên Bản Bìa</div>
+                        <div class="value" th:text="${totalVariants}">18</div>
+                        <div style="font-size: 0.75rem; color: #4338ca; font-weight: 600; margin-top: 6px;">Bìa mềm, bìa cứng, VIP</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Đơn hàng -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Tổng Số Đơn Hàng</div>
+                        <div class="value" th:text="${totalOrders}">0</div>
+                        <div style="font-size: 0.75rem; color: #b45309; font-weight: 600; margin-top: 6px;" th:text="${pendingOrders} + ' đơn chờ xác nhận'">0 chờ</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Doanh thu -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Doanh Thu Thành Công</div>
+                        <div class="value" style="color: #166534;"
+                             th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                        <div style="font-size: 0.75rem; color: #166534; font-weight: 600; margin-top: 6px;">Đơn đã giao thành công</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT ORDERS TABLE -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <h2 class="admin-card-title">Đơn Hàng Gần Đây Cần Xử Lý</h2>
+                        <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 2px;">Các đơn sách mới nhất đặt qua hệ thống</p>
+                    </div>
+                    <a href="/admin/orders" class="admin-btn admin-btn-secondary admin-btn-sm">
+                        Xem tất cả đơn hàng &rarr;
+                    </a>
+                </div>
+
+                <div th:if="${recentOrders.isEmpty()}" style="padding: 48px; text-align: center; color: var(--admin-text-muted);">
+                    <div style="width: 44px; height: 44px; margin: 0 auto 12px; color: var(--admin-text-light);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                        </svg>
+                    </div>
+                    Chưa có đơn hàng nào được đặt. Hãy mở website cửa hàng để tạo đơn hàng thử nghiệm!
+                </div>
+
+                <div th:unless="${recentOrders.isEmpty()}" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Số điện thoại</th>
+                                <th>Thời gian</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align: right;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${recentOrders}">
+                                <td>
+                                    <strong style="color: #0f172a; font-family: monospace;" th:text="${order.orderCode}">ORD-12345</strong>
+                                </td>
+                                <td th:text="${order.customerName}">Nguyễn Văn A</td>
+                                <td th:text="${order.customerPhone}">0912345678</td>
+                                <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                                <td>
+                                    <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                                </td>
+                                <td>
+                                    <span th:class="'admin-status-badge ' + ${order.orderStatus.badgeClass}" th:text="${order.orderStatus.displayName}">Chờ xử lý</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a th:href="@{/admin/orders(orderId=${order.id})}" class="admin-btn admin-btn-secondary admin-btn-sm">
+                                        Xử lý &rarr;
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Chi Tiết Đơn Hàng ' + ${order.orderCode} + ' - BookStore'">Chi Tiết Đơn Hàng</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="container" style="margin-top: 28px; margin-bottom: 60px;">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">Đơn Hàng <span style="font-family: monospace;" th:text="${order.orderCode}">ORD-123</span></h1>
+                <p class="section-subtitle">Thời gian đặt: <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span></p>
+            </div>
+            <a href="/my-orders" class="btn btn-secondary btn-sm">&larr; Danh sách đơn của bạn</a>
+        </div>
+
+        <div style="background: var(--paper-subtle); border: 1px solid var(--paper-border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 28px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; font-size: 0.88rem;">
+                <div>Người nhận: <br><strong style="color: var(--ink-900);" th:text="${order.customerName}">Nguyễn Văn A</strong></div>
+                <div>Điện thoại: <br><strong style="color: var(--ink-900);" th:text="${order.customerPhone}">0912345678</strong></div>
+                <div>Phương thức thanh toán: <br><strong style="color: var(--ink-900);" th:text="${order.paymentMethod}">COD</strong></div>
+                <div>Trạng thái hiện tại: <br><span th:class="'badge ' + ${order.orderStatus.badgeClass}" th:text="${order.orderStatus.displayName}">Chờ xử lý</span></div>
+                <div style="grid-column: 1 / -1;">Địa chỉ nhận hàng: <br><strong style="color: var(--ink-900);" th:text="${order.shippingAddress}">Hà Nội</strong></div>
+                <div style="grid-column: 1 / -1;" th:if="${order.note != null && !order.note.isEmpty()}">
+                    Ghi chú: <br><em style="color: var(--ink-600);" th:text="${order.note}">Ghi chú</em>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="font-size: 1.15rem; margin-bottom: 14px; color: var(--ink-900);">Ấn phẩm trong đơn hàng</h3>
+        <div style="background: #ffffff; border: 1px solid var(--paper-border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card);">
+            <table class="table-clean">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm &amp; Phiên bản</th>
+                        <th>Đơn giá</th>
+                        <th style="text-align: center;">Số lượng</th>
+                        <th style="text-align: right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${order.items}">
+                        <td>
+                            <strong th:text="${item.bookTitle}" style="color: var(--ink-900);">Tên sách</strong>
+                            <div style="font-size: 0.78rem; color: var(--ink-600);" th:text="'Phiên bản: ' + ${item.variantName}">Bìa mềm</div>
+                        </td>
+                        <td th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                        <td style="text-align: center;" th:text="${item.quantity}">1</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--ink-900);" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right; font-weight: 700; padding: 18px; border-top: 1px solid var(--paper-border);">Tổng thanh toán:</td>
+                        <td style="text-align: right; font-weight: 800; font-size: 1.25rem; color: var(--terracotta); padding: 18px; border-top: 1px solid var(--paper-border);" 
+                            th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

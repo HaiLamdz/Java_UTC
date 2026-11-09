@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookStore &mdash; Ấn Bản &amp; Tri Thức</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <!-- ================= HERO BANNER ================= -->
+    <section class="hero-fullscreen">
+        <img class="hero-bg-image"
+             src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=2000&q=85"
+             alt="Không Gian Văn Hóa &amp; Tri Thức">
+        <div class="hero-left-scrim"></div>
+
+        <div class="container hero-left-container">
+            <div class="hero-text-content">
+                <p class="hero-kicker-white">Không Gian Văn Hóa &amp; Tri Thức</p>
+
+                <h1 class="hero-headline-white">
+                    Mở Trang Sách Mới,<br>
+                    Đánh Thức Tri Thức
+                </h1>
+
+                <div class="hero-actions-left">
+                    <a href="/books" class="btn-hero-primary">
+                        <span>Khám Phá Kho Sách</span>
+                    </a>
+                    <a href="#featured-section" class="btn-hero-outline-white">
+                        <span>Xem Ấn Bản Nổi Bật</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút Khám phá cuối banner -->
+        <a href="#featured-section" class="hero-scroll-down" aria-label="Cuộn xuống khám phá">
+            <span>Khám phá</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+        </a>
+    </section>
+
+    <main class="container">
+        <!-- Alerts Fragment -->
+        <div th:replace="~{layout/alerts :: alerts}"></div>
+
+        <!-- ================= KỆ 1: TÁC PHẨM TIÊU BIỂU (4 ITEM / HÀNG, CUỘN NGANG) ================= -->
+        <section id="featured-section" class="section-block">
+            <div class="section-header">
+                <div>
+                    <span class="section-eyebrow">Tuyển chọn</span>
+                    <h2 class="section-title">Tác Phẩm Tiêu Biểu</h2>
+                </div>
+                <div class="section-header-right">
+                    <div class="shelf-nav-controls">
+                        <button type="button" class="shelf-scroll-btn" onclick="scrollShelf('featuredShelf', -1)" aria-label="Trước">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <button type="button" class="shelf-scroll-btn" onclick="scrollShelf('featuredShelf', 1)" aria-label="Tiếp">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <a href="/books" class="section-more-link">Xem toàn bộ &rarr;</a>
+                </div>
+            </div>
+
+            <div class="book-shelf-wrapper">
+                <div class="book-scroll-shelf" id="featuredShelf">
+                    <article th:each="book : ${featuredBooks}" class="book-card">
+                        <a th:href="@{/books/{id}(id=${book.id})}" class="book-card-cover-wrap">
+                            <img th:src="${book.imageUrl}" th:alt="${book.title}" class="book-card-cover">
+                            <span class="badge-variant-count" th:if="${book.variants.size() > 1}"
+                                  th:text="${book.variants.size()} + ' ấn bản'">3 ấn bản</span>
+                        </a>
+
+                        <div class="book-card-body">
+                            <p class="book-card-author" th:text="${book.author}">Tác giả</p>
+                            <a th:href="@{/books/{id}(id=${book.id})}">
+                                <h3 class="book-card-title" th:text="${book.title}">Tiêu đề sách</h3>
+                            </a>
+                            <div class="book-card-meta">
+                                <span class="book-card-price" th:if="${book.minPrice == book.maxPrice}"
+                                      th:text="${#numbers.formatDecimal(book.minPrice, 0, 'COMMA', 0, 'POINT')} + '₫'">100.000₫</span>
+                                <span class="book-card-price" th:if="${book.minPrice != book.maxPrice}">
+                                    <small class="price-prefix">Từ</small>
+                                    <span th:text="${#numbers.formatDecimal(book.minPrice, 0, 'COMMA', 0, 'POINT')} + '₫'">85.000₫</span>
+                                </span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= CHUYÊN ĐỀ ẤN BẢN (EDITORIAL SPLIT) ================= -->
+        <section class="editorial-banner">
+            <div class="editorial-banner-text">
+                <span class="section-eyebrow">Chuyên đề xuất bản</span>
+                <h2>Ấn Bản Bìa Cứng &amp; Bản Sưu Tầm</h2>
+                <p>
+                    Mỗi tựa sách tại BookStore đều được cung cấp với nhiều quy cách in ấn: từ bản bìa mềm phổ thông tiện lợi khi di chuyển, đến bản bìa cứng khâu chỉ bền bỉ và ấn bản giới hạn dành cho người sưu tầm sách.
+                </p>
+                <a href="/books" class="btn btn-primary">Tìm hiểu danh mục sách</a>
+            </div>
+            <div class="editorial-banner-media">
+                <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=85"
+                     alt="Ấn bản bìa cứng">
+            </div>
+        </section>
+
+        <!-- ================= KỆ 2: MỚI PHÁT HÀNH (4 ITEM / HÀNG, CUỘN NGANG) ================= -->
+        <section class="section-block">
+            <div class="section-header">
+                <div>
+                    <span class="section-eyebrow">Mới cập nhật</span>
+                    <h2 class="section-title">Sách Mới Phát Hành</h2>
+                </div>
+                <div class="section-header-right">
+                    <div class="shelf-nav-controls">
+                        <button type="button" class="shelf-scroll-btn" onclick="scrollShelf('latestShelf', -1)" aria-label="Trước">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <button type="button" class="shelf-scroll-btn" onclick="scrollShelf('latestShelf', 1)" aria-label="Tiếp">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <a href="/books" class="section-more-link">Xem toàn bộ &rarr;</a>
+                </div>
+            </div>
+
+            <div class="book-shelf-wrapper">
+                <div class="book-scroll-shelf" id="latestShelf">
+                    <article th:each="book : ${latestBooks}" class="book-card">
+                        <a th:href="@{/books/{id}(id=${book.id})}" class="book-card-cover-wrap">
+                            <img th:src="${book.imageUrl}" th:alt="${book.title}" class="book-card-cover">
+                            <span class="badge-variant-count" th:if="${book.variants.size() > 1}"
+                                  th:text="${book.variants.size()} + ' ấn bản'">2 ấn bản</span>
+                        </a>
+
+                        <div class="book-card-body">
+                            <p class="book-card-author" th:text="${book.author}">Tác giả</p>
+                            <a th:href="@{/books/{id}(id=${book.id})}">
+                                <h3 class="book-card-title" th:text="${book.title}">Tiêu đề sách</h3>
+                            </a>
+                            <div class="book-card-meta">
+                                <span class="book-card-price" th:if="${book.minPrice == book.maxPrice}"
+                                      th:text="${#numbers.formatDecimal(book.minPrice, 0, 'COMMA', 0, 'POINT')} + '₫'">100.000₫</span>
+                                <span class="book-card-price" th:if="${book.minPrice != book.maxPrice}">
+                                    <small class="price-prefix">Từ</small>
+                                    <span th:text="${#numbers.formatDecimal(book.minPrice, 0, 'COMMA', 0, 'POINT')} + '₫'">85.000₫</span>
+                                </span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= DANH MỤC THEO CHỦ ĐỀ ================= -->
+        <section class="section-block" style="padding-top: 16px; padding-bottom: 64px;">
+            <div class="section-header">
+                <div>
+                    <span class="section-eyebrow">Phân loại</span>
+                    <h2 class="section-title">Tủ Sách Theo Lĩnh Vực</h2>
+                </div>
+            </div>
+
+            <div class="category-index-grid">
+                <a th:each="cat : ${globalCategories}"
+                   th:href="@{/books(categoryId=${cat.id})}"
+                   class="category-index-card">
+                    <div>
+                        <h3 th:text="${cat.name}">Văn học</h3>
+                        <p th:text="${cat.description != null ? cat.description : 'Tuyển tập tác phẩm chọn lọc'}">Mô tả</p>
+                    </div>
+                    <span class="category-index-count" th:text="${cat.bookCount} + ' tác phẩm'">0 tác phẩm</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Fragment -->
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script>
+        function scrollShelf(shelfId, direction) {
+            const shelf = document.getElementById(shelfId);
+            if (!shelf) return;
+            const scrollDistance = shelf.clientWidth * 0.76;
+            shelf.scrollBy({ left: direction * scrollDistance, behavior: 'smooth' });
+        }
+
+        document.querySelectorAll('.book-scroll-shelf').forEach(shelf => {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            shelf.addEventListener('mousedown', (e) => {
+                if (e.target.closest('a') || e.target.closest('button')) return;
+                isDown = true;
+                shelf.classList.add('is-dragging');
+                startX = e.pageX - shelf.offsetLeft;
+                scrollLeft = shelf.scrollLeft;
+            });
+            shelf.addEventListener('mouseleave', () => {
+                isDown = false;
+                shelf.classList.remove('is-dragging');
+            });
+            shelf.addEventListener('mouseup', () => {
+                isDown = false;
+                shelf.classList.remove('is-dragging');
+            });
+            shelf.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - shelf.offsetLeft;
+                const walk = (x - startX) * 1.4;
+                shelf.scrollLeft = scrollLeft - walk;
+            });
+        });
+    </script>
+</body>
+</html>

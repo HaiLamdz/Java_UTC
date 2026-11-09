@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thể Loại Sách - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar('categories')}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar('Danh Mục Thể Loại', 'Quản lý kho')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Page Title -->
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Thể Loại Sách</h1>
+                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    Thiết lập các danh mục thể loại để phân loại và sắp xếp tác phẩm trên gian hàng.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 360px 1fr; gap: 28px;">
+                <!-- FORM THÊM MỚI -->
+                <div class="admin-card" style="height: fit-content;">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Thêm Thể Loại Mới</h3>
+                    </div>
+                    <div style="padding: 22px;">
+                        <form action="/admin/categories/save" method="POST" th:object="${newCategory}">
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Tên thể loại <span style="color:#b91c1c">*</span>
+                                </label>
+                                <input type="text" th:field="*{name}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.88rem;" placeholder="Ví dụ: Khoa học viễn tưởng" required>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Mô tả thể loại
+                                </label>
+                                <textarea th:field="*{description}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.88rem;" rows="3" placeholder="Mô tả tóm tắt..."></textarea>
+                            </div>
+
+                            <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
+                                Lưu Thể Loại
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH THỂ LOẠI -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Danh Sách Thể Loại Hiện Có</h3>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th>Tên thể loại</th>
+                                    <th>Mô tả</th>
+                                    <th style="text-align: center; width: 110px;">Số đầu sách</th>
+                                    <th style="text-align: right; width: 80px;">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="cat : ${categories}">
+                                    <td style="font-weight: 600; color: var(--admin-text-muted);" th:text="${cat.id}">1</td>
+                                    <td>
+                                        <strong style="color: #0f172a;" th:text="${cat.name}">Tên thể loại</strong>
+                                    </td>
+                                    <td style="font-size: 0.82rem; color: var(--admin-text-muted);" th:text="${cat.description != null ? cat.description : '-'}">Mô tả</td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #334155;" 
+                                              th:text="${cat.books != null ? cat.books.size() : 0} + ' cuốn'">0 cuốn</span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <a th:href="@{/admin/categories/delete/{id}(id=${cat.id})}" 
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa thể loại này? Các sách thuộc thể loại sẽ chuyển về Chưa phân loại.')"
+                                           class="admin-btn admin-btn-danger admin-btn-sm">
+                                            Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

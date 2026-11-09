@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập Quản Trị Nội Bộ - CMS</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css(v=2)}">
+    <style>
+        body.admin-login-page {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .admin-login-card {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 36px 32px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35);
+        }
+        .admin-login-brand {
+            margin-bottom: 28px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .admin-login-brand span {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .admin-login-brand h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+    </style>
+</head>
+<body class="admin-login-page">
+
+    <div class="admin-login-card">
+        <div class="admin-login-brand">
+            <span>Internal Backoffice</span>
+            <h1>Hệ Thống Quản Trị Kho Sách</h1>
+        </div>
+
+        <div th:replace="~{admin/layout :: alerts}"></div>
+
+        <form action="/admin/login" method="POST" th:object="${loginForm}">
+            <div class="admin-form-group">
+                <label class="admin-label">Tài khoản quản trị</label>
+                <input type="text" th:field="*{username}" class="admin-input" placeholder="Nhập mã nhân sự / username" required autofocus>
+                <div style="color: #b91c1c; font-size: 0.78rem; margin-top: 4px;" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+            </div>
+
+            <div class="admin-form-group">
+                <label class="admin-label">Mật khẩu</label>
+                <input type="password" th:field="*{password}" class="admin-input" placeholder="Nhập mật khẩu" required>
+                <div style="color: #b91c1c; font-size: 0.78rem; margin-top: 4px;" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+            </div>
+
+            <div style="margin-top: 24px;">
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; padding: 11px 16px; font-size: 0.9rem;">
+                    Đăng Nhập Quản Trị
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
+
