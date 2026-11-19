@@ -110,6 +110,17 @@ public class CheckoutController {
     }
 
     /**
+     * Xem chi tiết một đơn hàng theo ID
+     */
+    @GetMapping("/my-orders/{id}")
+    public String myOrderDetail(@PathVariable("id") Long id, Model model) {
+        Order order = orderService.getOrderById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+        model.addAttribute("order", order);
+        return "checkout/detail";
+    }
+
+    /**
      * Xem chi tiết một đơn hàng theo mã đơn
      */
     @GetMapping("/orders/{orderCode}")
