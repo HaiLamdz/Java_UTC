@@ -77,6 +77,7 @@ CREATE TABLE book_variants (
     original_price NUMBER(12, 2) CHECK (original_price >= 0),
     stock_quantity NUMBER(8) DEFAULT 0 NOT NULL CHECK (stock_quantity >= 0),
     is_default NUMBER(1) DEFAULT 0 CHECK (is_default IN (0, 1)),
+    image_url VARCHAR2(500),
     CONSTRAINT fk_variants_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
 

@@ -1,5 +1,6 @@
 package com.bookstore.controller;
 
+import com.bookstore.config.WebConfig;
 import com.bookstore.dto.BookForm;
 import com.bookstore.dto.LoginForm;
 import com.bookstore.dto.VariantForm;
@@ -11,15 +12,23 @@ import com.bookstore.service.OrderService;
 import com.bookstore.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/admin")
@@ -186,7 +195,8 @@ public class AdminController {
                     v.getPrice(),
                     v.getOriginalPrice(),
                     v.getStockQuantity(),
-                    v.getIsDefault()
+                    v.getIsDefault(),
+                    v.getImageUrl()
             );
             vf.setId(v.getId());
             variantForms.add(vf);
@@ -196,6 +206,65 @@ public class AdminController {
         model.addAttribute("bookForm", bookForm);
         model.addAttribute("categories", categoryService.getAllCategories());
         return "admin/book-form";
+    }
+
+    /**
+     * API Upload ảnh bìa sách và ảnh biến thể (hỗ trợ kéo thả và chọn file)
+     */
+    @PostMapping("/upload")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file,
+                                                          HttpSession session) {
+        if (!checkAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "Bạn cần đăng nhập tài khoản quản trị viên"));
+        }
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Tệp tải lên không được để trống"));
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Vui lòng chỉ chọn tệp hình ảnh (JPG, PNG, WEBP, GIF,...)"));
+        }
+
+        try {
+            Path uploadPath = WebConfig.getUploadPath();
+            String originalFilename = file.getOriginalFilename();
+            String extension = ".jpg";
+            if (originalFilename != null && originalFilename.lastIndexOf('.') >= 0) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
+            }
+
+            String newFilename = "book_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 6) + extension;
+            Path targetFile = uploadPath.resolve(newFilename);
+            Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+
+            // Tự động sao chép sang target/classes/static/uploads nếu có để đồng bộ ngay lập tức
+            try {
+                Path targetClassesPath = uploadPath.getParent().resolve("target").resolve("classes").resolve("static").resolve("uploads");
+                if (Files.exists(targetClassesPath.getParent())) {
+                    if (!Files.exists(targetClassesPath)) {
+                        Files.createDirectories(targetClassesPath);
+                    }
+                    Files.copy(targetFile, targetClassesPath.resolve(newFilename), StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (Exception ignored) {
+            }
+
+            String fileUrl = "/uploads/" + newFilename;
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "url", fileUrl,
+                    "fileName", newFilename
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Lỗi khi lưu tệp: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/books/save")

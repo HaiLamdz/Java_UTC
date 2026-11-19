@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Uploaded User Media (Laravel storage:link style) ###
+uploads/*
+!uploads/.gitignore
+/uploads/*
+!/uploads/.gitignore

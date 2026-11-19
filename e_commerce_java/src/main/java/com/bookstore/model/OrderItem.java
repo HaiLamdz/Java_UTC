@@ -124,6 +124,14 @@ public class OrderItem {
         this.price = price;
     }
 
+    public Double getUnitPrice() {
+        return price;
+    }
+
+    public void setUnitPrice(Double unitPrice) {
+        this.price = unitPrice;
+    }
+
     public Integer getQuantity() {
         return quantity;
     }

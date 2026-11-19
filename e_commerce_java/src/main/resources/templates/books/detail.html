@@ -89,6 +89,7 @@
                                 th:data-original-price="${v.originalPrice}"
                                 th:data-stock="${v.stockQuantity}"
                                 th:data-discount="${v.discountPercent}"
+                                th:data-image="${v.imageUrl}"
                                 onclick="selectVariant(this)">
                             <span class="variant-pill-name" th:text="${v.variantName}">Bìa mềm</span>
                             <span class="variant-pill-price" th:text="${#numbers.formatDecimal(v.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</span>
@@ -182,6 +183,15 @@
 
             document.getElementById('selectedVariantName').innerText = name;
             document.getElementById('displaySku').innerText = sku || 'Chưa có';
+
+            // Đổi ảnh bìa nếu biến thể có ảnh riêng
+            const variantImg = button.dataset.image;
+            if (variantImg && variantImg.trim() !== '') {
+                const coverImg = document.getElementById('productCoverImg');
+                if (coverImg) {
+                    coverImg.src = variantImg.trim();
+                }
+            }
 
             const formattedPrice = new Intl.NumberFormat('vi-VN').format(price) + ' đ';
             document.getElementById('displayPrice').innerText = formattedPrice;

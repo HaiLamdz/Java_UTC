@@ -105,6 +105,7 @@ public class BookService {
                     variant.setPrice(vf.getPrice() != null ? vf.getPrice() : 0.0);
                     variant.setOriginalPrice(vf.getOriginalPrice());
                     variant.setStockQuantity(vf.getStockQuantity() != null ? vf.getStockQuantity() : 0);
+                    variant.setImageUrl(vf.getImageUrl());
                     
                     if (vf.getIsDefault() && !hasDefault) {
                         variant.setIsDefault(true);

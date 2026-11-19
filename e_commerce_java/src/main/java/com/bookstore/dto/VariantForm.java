@@ -25,6 +25,8 @@ public class VariantForm {
 
     private Boolean isDefault = false;
 
+    private String imageUrl;
+
     public VariantForm() {
     }
 
@@ -35,6 +37,16 @@ public class VariantForm {
         this.originalPrice = originalPrice;
         this.stockQuantity = stockQuantity;
         this.isDefault = isDefault;
+    }
+
+    public VariantForm(String variantName, String sku, Double price, Double originalPrice, Integer stockQuantity, Boolean isDefault, String imageUrl) {
+        this.variantName = variantName;
+        this.sku = sku;
+        this.price = price;
+        this.originalPrice = originalPrice;
+        this.stockQuantity = stockQuantity;
+        this.isDefault = isDefault;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() {
@@ -91,5 +103,13 @@ public class VariantForm {
 
     public void setIsDefault(Boolean isDefault) {
         this.isDefault = isDefault;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

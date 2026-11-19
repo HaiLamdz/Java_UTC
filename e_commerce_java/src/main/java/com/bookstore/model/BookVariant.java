@@ -60,6 +60,12 @@ public class BookVariant {
     @Column(name = "is_default")
     private Boolean isDefault = false;
 
+    /**
+     * Đường dẫn ảnh riêng biệt cho từng biến thể (bìa mềm, bìa cứng, bản đặc biệt...)
+     */
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     public BookVariant() {
     }
 
@@ -71,6 +77,17 @@ public class BookVariant {
         this.originalPrice = originalPrice;
         this.stockQuantity = stockQuantity;
         this.isDefault = isDefault;
+    }
+
+    public BookVariant(Book book, String variantName, String sku, Double price, Double originalPrice, Integer stockQuantity, Boolean isDefault, String imageUrl) {
+        this.book = book;
+        this.variantName = variantName;
+        this.sku = sku;
+        this.price = price;
+        this.originalPrice = originalPrice;
+        this.stockQuantity = stockQuantity;
+        this.isDefault = isDefault;
+        this.imageUrl = imageUrl;
     }
 
     // ================= Helper Methods =================
@@ -151,5 +168,13 @@ public class BookVariant {
 
     public void setIsDefault(Boolean isDefault) {
         this.isDefault = isDefault;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

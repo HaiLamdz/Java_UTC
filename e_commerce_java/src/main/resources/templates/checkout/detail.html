@@ -50,7 +50,7 @@
                             <strong th:text="${item.bookTitle}" style="color: var(--ink-900);">Tên sách</strong>
                             <div style="font-size: 0.78rem; color: var(--ink-600);" th:text="'Phiên bản: ' + ${item.variantName}">Bìa mềm</div>
                         </td>
-                        <td th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                        <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
                         <td style="text-align: center;" th:text="${item.quantity}">1</td>
                         <td style="text-align: right; font-weight: 700; color: var(--ink-900);" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
                     </tr>
