@@ -36,7 +36,7 @@
                 </a>
             </div>
 
-            <form action="/admin/books/save" method="POST" th:object="${bookForm}">
+            <form action="/admin/books/save" method="POST" enctype="multipart/form-data" th:object="${bookForm}">
                 <input type="hidden" th:field="*{id}">
 
                 <!-- CARD 1: THÔNG TIN CƠ BẢN -->
@@ -159,6 +159,46 @@
                         <div style="margin-bottom: 18px;">
                             <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">Mô tả nội dung tác phẩm</label>
                             <textarea th:field="*{description}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" rows="4" placeholder="Nhập tóm tắt nội dung cuốn sách..."></textarea>
+                        </div>
+
+                        <!-- KHỐI UPLOAD FILE ĐỌC THỬ (.PDF / .TXT) & TRÍCH ĐOẠN PHỤC VỤ TRỢ LÝ AI -->
+                        <div style="margin-bottom: 18px; padding: 16px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--admin-text-main);">
+                                        Upload File Đọc Thử (.pdf, .txt, .md)
+                                    </label>
+                                    <span style="font-size: 0.78rem; color: var(--admin-text-muted);">
+                                        Tự động dùng PDFBox bóc tách nội dung các trang đầu làm ngữ liệu cho Trợ lý AI tư vấn khách hàng.
+                                    </span>
+                                </div>
+                                <div id="currentPdfBadge" th:style="${bookForm.samplePdfUrl != null && !bookForm.samplePdfUrl.isEmpty()} ? 'display: flex; align-items: center; gap: 8px;' : 'display: none;'">
+                                    <a id="currentPdfLink" th:href="${bookForm.samplePdfUrl}" target="_blank"
+                                       style="font-size: 0.8rem; font-weight: 600; color: #2563eb; text-decoration: underline;">
+                                        Xem file đọc thử hiện tại &nearr;
+                                    </a>
+                                    <button type="button" onclick="clearUploadedPreview()"
+                                            style="font-size: 0.75rem; color: #b91c1c; background: #fee2e2; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                                        Gỡ file
+                                    </button>
+                                </div>
+                            </div>
+
+                            <input type="hidden" th:field="*{samplePdfUrl}" id="samplePdfUrlInput">
+                            <input type="file" name="previewFile" id="previewFileInput" accept=".pdf,.txt,.md"
+                                   onchange="uploadPreviewDocument(this)"
+                                   style="width: 100%; padding: 8px; background: #ffffff; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.84rem;">
+
+                            <div id="previewUploadStatus" style="display: none; margin-top: 10px; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem;"></div>
+
+                            <div style="margin-top: 14px;">
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Nội dung đọc thử / Mục lục đã trích xuất
+                                </label>
+                                <textarea th:field="*{sampleExcerpt}" id="sampleExcerpt"
+                                          style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.86rem; background: #ffffff;"
+                                          rows="4" placeholder="Chọn file PDF/TXT ở trên để tự động trích xuất văn bản vào đây, hoặc nhập thủ công..."></textarea>
+                            </div>
                         </div>
 
                         <div>
@@ -575,6 +615,54 @@
             if (hidden) {
                 hidden.value = 'true';
             }
+        }
+
+        async function uploadPreviewDocument(fileInput) {
+            if (!fileInput.files || fileInput.files.length === 0) return;
+            const file = fileInput.files[0];
+            const statusEl = document.getElementById('previewUploadStatus');
+            const excerptEl = document.getElementById('sampleExcerpt');
+            const pdfUrlInput = document.getElementById('samplePdfUrlInput');
+            const badgeWrap = document.getElementById('currentPdfBadge');
+            const pdfLink = document.getElementById('currentPdfLink');
+
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#eff6ff';
+            statusEl.style.color = '#1d4ed8';
+            statusEl.innerText = 'Đang tải file "' + file.name + '" và bóc tách văn bản đọc thử...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/admin/api/books/upload-preview', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Không thể xử lý file đọc thử.');
+
+                pdfUrlInput.value = data.fileUrl || '';
+                if (data.extractedText) excerptEl.value = data.extractedText;
+                if (data.fileUrl) {
+                    pdfLink.href = data.fileUrl;
+                    badgeWrap.style.display = 'flex';
+                    badgeWrap.style.alignItems = 'center';
+                    badgeWrap.style.gap = '8px';
+                }
+                fileInput.value = '';
+                statusEl.style.background = '#dcfce7';
+                statusEl.style.color = '#166534';
+                statusEl.innerText = 'Đã trích xuất ' + (data.pageCount || 1) + ' trang ('
+                    + new Intl.NumberFormat('vi-VN').format(data.charCount || 0) + ' ký tự) từ "' + (data.fileName || file.name) + '".';
+            } catch (err) {
+                statusEl.style.background = '#fee2e2';
+                statusEl.style.color = '#b91c1c';
+                statusEl.innerText = 'Lỗi tải file: ' + (err.message || 'Không thể đọc file.');
+            }
+        }
+
+        function clearUploadedPreview() {
+            document.getElementById('samplePdfUrlInput').value = '';
+            document.getElementById('previewFileInput').value = '';
+            document.getElementById('currentPdfBadge').style.display = 'none';
         }
     </script>
 </body>

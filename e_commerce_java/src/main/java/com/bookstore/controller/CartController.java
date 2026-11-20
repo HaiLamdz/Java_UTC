@@ -5,11 +5,14 @@ import com.bookstore.dto.CartDto;
 import com.bookstore.service.CartService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Map;
 
 @Controller
 @RequestMapping("/cart")
@@ -53,6 +56,31 @@ public class CartController {
         }
 
         return "redirect:/cart";
+    }
+
+    /**
+     * API AJAX: Thêm nhanh sách vào giỏ ngay từ Thẻ sách trong khung chat Trợ lý AI (không reload trang)
+     */
+    @PostMapping("/api/add")
+    @ResponseBody
+    public ResponseEntity<?> addToCartAjax(@RequestParam("bookId") Long bookId,
+                                           @RequestParam("variantId") Long variantId,
+                                           @RequestParam(value = "quantity", defaultValue = "1") Integer quantity,
+                                           HttpSession session) {
+        try {
+            cartService.addToCart(session, bookId, variantId, quantity);
+            CartDto cart = cartService.getCart(session);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "cartCount", cart.getTotalQuantity(),
+                    "message", "Đã thêm vào giỏ hàng!"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
+        }
     }
 
     /**

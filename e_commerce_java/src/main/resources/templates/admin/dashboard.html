@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Điều Khiển Quản Trị - BookStore</title>
-    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css(v=3)}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body class="admin-body">
 
@@ -14,30 +15,43 @@
     <!-- Admin Main Wrapper -->
     <div class="admin-main-wrapper">
         <!-- Dedicated Admin Topbar -->
-        <div th:replace="~{admin/layout :: topbar('Tổng Quan', 'Bảng điều khiển')}"></div>
+        <div th:replace="~{admin/layout :: topbar('Tổng Quan & Biểu Đồ', 'Bảng điều khiển')}"></div>
 
         <main class="admin-content">
             <!-- Alerts -->
             <div th:replace="~{admin/layout :: alerts}"></div>
 
             <!-- Header Title -->
-            <div style="margin-bottom: 28px;">
-                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Báo Cáo Tổng Quan Cửa Hàng</h1>
-                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
-                    Thống kê trực quan số lượng đầu sách, biến thể tồn kho và tình trạng tiếp nhận đơn hàng.
-                </p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Báo Cáo Tổng Quan &amp; Phân Tích Kinh Doanh</h1>
+                    <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                        Số liệu thống kê thời gian thực từ cơ sở dữ liệu về doanh thu, tiến độ đơn hàng, sách bán chạy và tồn kho.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/admin/books/new" class="admin-btn admin-btn-primary">
+                        + Thêm Sách Mới
+                    </a>
+                    <a href="/admin/orders" class="admin-btn admin-btn-secondary">
+                        Quản lý đơn hàng
+                    </a>
+                </div>
             </div>
 
-            <!-- STAT CARDS -->
+            <!-- ================= 4 KPI STAT CARDS ================= -->
             <div class="admin-stat-grid">
                 <!-- Sách -->
                 <div class="admin-stat-card">
                     <div class="admin-stat-info">
-                        <div class="title">Đầu Sách Đang Bán</div>
-                        <div class="value" th:text="${totalBooks}">8</div>
-                        <div style="font-size: 0.75rem; color: #166534; font-weight: 600; margin-top: 6px;">Đang hoạt động</div>
+                        <div class="title">Đầu Sách &amp; Kho Bìa</div>
+                        <div class="value" th:text="${totalBooks} + ' đầu sách'">8 đầu sách</div>
+                        <div style="font-size: 0.76rem; color: #4338ca; font-weight: 600; margin-top: 6px;"
+                             th:text="${totalVariants} + ' phiên bản • Tổng tồn: ' + ${totalStockUnits} + ' cuốn'">
+                            18 phiên bản
+                        </div>
                     </div>
-                    <div class="admin-stat-icon">
+                    <div class="admin-stat-icon" style="background: #eef2ff; color: #4338ca; border-color: #e0e7ff;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -45,17 +59,20 @@
                     </div>
                 </div>
 
-                <!-- Biến thể -->
+                <!-- Tổng giá trị đặt hàng -->
                 <div class="admin-stat-card">
                     <div class="admin-stat-info">
-                        <div class="title">Tổng Phiên Bản Bìa</div>
-                        <div class="value" th:text="${totalVariants}">18</div>
-                        <div style="font-size: 0.75rem; color: #4338ca; font-weight: 600; margin-top: 6px;">Bìa mềm, bìa cứng, VIP</div>
+                        <div class="title">Tổng Giá Trị Đặt Hàng</div>
+                        <div class="value" style="color: #2563eb;"
+                             th:text="${#numbers.formatDecimal(totalOrderValue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                        <div style="font-size: 0.76rem; color: #64748b; font-weight: 600; margin-top: 6px;">
+                            Tính trên các đơn hợp lệ (không hủy)
+                        </div>
                     </div>
-                    <div class="admin-stat-icon">
+                    <div class="admin-stat-icon" style="background: #eff6ff; color: #2563eb; border-color: #dbeafe;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
                         </svg>
                     </div>
                 </div>
@@ -65,9 +82,10 @@
                     <div class="admin-stat-info">
                         <div class="title">Tổng Số Đơn Hàng</div>
                         <div class="value" th:text="${totalOrders}">0</div>
-                        <div style="font-size: 0.75rem; color: #b45309; font-weight: 600; margin-top: 6px;" th:text="${pendingOrders} + ' đơn chờ xác nhận'">0 chờ</div>
+                        <div style="font-size: 0.76rem; color: #b45309; font-weight: 600; margin-top: 6px;"
+                             th:text="${pendingOrders} + ' đơn đang chờ xác nhận'">0 chờ</div>
                     </div>
-                    <div class="admin-stat-icon">
+                    <div class="admin-stat-icon" style="background: #fef3c7; color: #b45309; border-color: #fde68a;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="9" cy="21" r="1"></circle>
                             <circle cx="20" cy="21" r="1"></circle>
@@ -76,15 +94,17 @@
                     </div>
                 </div>
 
-                <!-- Doanh thu -->
+                <!-- Doanh thu thực thu -->
                 <div class="admin-stat-card">
                     <div class="admin-stat-info">
-                        <div class="title">Doanh Thu Thành Công</div>
+                        <div class="title">Doanh Thu Hoàn Thành</div>
                         <div class="value" style="color: #166534;"
                              th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-                        <div style="font-size: 0.75rem; color: #166534; font-weight: 600; margin-top: 6px;">Đơn đã giao thành công</div>
+                        <div style="font-size: 0.76rem; color: #166534; font-weight: 600; margin-top: 6px;">
+                            Đơn đã giao thành công
+                        </div>
                     </div>
-                    <div class="admin-stat-icon">
+                    <div class="admin-stat-icon" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="1" x2="12" y2="23"></line>
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
@@ -93,67 +113,387 @@
                 </div>
             </div>
 
-            <!-- RECENT ORDERS TABLE -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <div>
-                        <h2 class="admin-card-title">Đơn Hàng Gần Đây Cần Xử Lý</h2>
-                        <p style="font-size: 0.82rem; color: var(--admin-text-muted); margin-top: 2px;">Các đơn sách mới nhất đặt qua hệ thống</p>
+            <!-- ================= HÀNG BIỂU ĐỒ 1: DOANH THU THEO NGÀY & TỶ TRỌNG TRẠNG THÁI ================= -->
+            <div class="admin-charts-row-main">
+                <!-- Biểu đồ 1: Cột kết hợp Đường (Doanh thu & Số đơn theo ngày) -->
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <div class="admin-card-header">
+                        <div>
+                            <h2 class="admin-card-title">Biểu Đồ Doanh Thu &amp; Số Đơn Theo Ngày</h2>
+                            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                Kết hợp giá trị đặt hàng (VNĐ) và lưu lượng đơn phát sinh
+                            </p>
+                        </div>
+                        <span style="font-size: 0.74rem; background: #eff6ff; color: #2563eb; padding: 4px 10px; border-radius: 999px; font-weight: 600;">
+                            Dữ liệu trực tiếp CSDL
+                        </span>
                     </div>
-                    <a href="/admin/orders" class="admin-btn admin-btn-secondary admin-btn-sm">
-                        Xem tất cả đơn hàng &rarr;
-                    </a>
+                    <div class="admin-chart-body">
+                        <div class="admin-chart-canvas-wrap">
+                            <canvas id="revenueOrdersChart"></canvas>
+                        </div>
+                    </div>
                 </div>
 
-                <div th:if="${recentOrders.isEmpty()}" style="padding: 48px; text-align: center; color: var(--admin-text-muted);">
-                    <div style="width: 44px; height: 44px; margin: 0 auto 12px; color: var(--admin-text-light);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-                            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                        </svg>
+                <!-- Biểu đồ 2: Doughnut Tỷ trọng Trạng thái đơn hàng -->
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <div class="admin-card-header">
+                        <div>
+                            <h2 class="admin-card-title">Cơ Cấu Trạng Thái Đơn Hàng</h2>
+                            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                Tỷ lệ xử lý vận hành các đơn mua sách
+                            </p>
+                        </div>
                     </div>
-                    Chưa có đơn hàng nào được đặt. Hãy mở website cửa hàng để tạo đơn hàng thử nghiệm!
+                    <div class="admin-chart-body">
+                        <div class="admin-chart-canvas-wrap">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= HÀNG BIỂU ĐỒ 2: TOP SÁCH BÁN CHẠY & TỒN KHO THEO THỂ LOẠI ================= -->
+            <div class="admin-charts-row-equal">
+                <!-- Biểu đồ 3: Horizontal Bar Top Sách Bán Chạy -->
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <div class="admin-card-header">
+                        <div>
+                            <h2 class="admin-card-title">Top Đầu Sách Doanh Thu Cao Nhất</h2>
+                            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                Thống kê từ chi tiết các đơn hàng (Order Items)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="admin-chart-body">
+                        <div class="admin-chart-canvas-wrap">
+                            <canvas id="topBooksChart"></canvas>
+                        </div>
+                    </div>
                 </div>
 
-                <div th:unless="${recentOrders.isEmpty()}" style="overflow-x: auto;">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Mã đơn</th>
-                                <th>Khách hàng</th>
-                                <th>Số điện thoại</th>
-                                <th>Thời gian</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
-                                <th style="text-align: right;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="order : ${recentOrders}">
-                                <td>
-                                    <strong style="color: #0f172a; font-family: monospace;" th:text="${order.orderCode}">ORD-12345</strong>
-                                </td>
-                                <td th:text="${order.customerName}">Nguyễn Văn A</td>
-                                <td th:text="${order.customerPhone}">0912345678</td>
-                                <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
-                                <td>
-                                    <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
-                                </td>
-                                <td>
-                                    <span th:class="'admin-status-badge ' + ${order.orderStatus.badgeClass}" th:text="${order.orderStatus.displayName}">Chờ xử lý</span>
-                                </td>
-                                <td style="text-align: right;">
-                                    <a th:href="@{/admin/orders(orderId=${order.id})}" class="admin-btn admin-btn-secondary admin-btn-sm">
-                                        Xử lý &rarr;
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Biểu đồ 4: Tồn kho & Phân bố theo Thể loại -->
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <div class="admin-card-header">
+                        <div>
+                            <h2 class="admin-card-title">Lượng Sách Tồn Kho Theo Thể Loại</h2>
+                            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                Tổng hợp tồn kho thực tế của tất cả biến thể ấn bản
+                            </p>
+                        </div>
+                    </div>
+                    <div class="admin-chart-body">
+                        <div class="admin-chart-canvas-wrap">
+                            <canvas id="categoryStockChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= HÀNG CUỐI: ĐƠN HÀNG GẦN ĐÂY & CẢNH BÁO TỒN KHO THẤP ================= -->
+            <div class="admin-bottom-split">
+                <!-- Bảng Đơn hàng gần đây -->
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <div class="admin-card-header">
+                        <div>
+                            <h2 class="admin-card-title">Đơn Hàng Gần Đây Cần Xử Lý</h2>
+                            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;">5 đơn sách mới nhất trên hệ thống</p>
+                        </div>
+                        <a href="/admin/orders" class="admin-btn admin-btn-secondary admin-btn-sm">
+                            Xem tất cả &rarr;
+                        </a>
+                    </div>
+
+                    <div th:if="${recentOrders.isEmpty()}" style="padding: 44px; text-align: center; color: var(--admin-text-muted);">
+                        Chưa có đơn hàng nào được đặt trên hệ thống.
+                    </div>
+
+                    <div th:unless="${recentOrders.isEmpty()}" style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Thời gian</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="order : ${recentOrders}">
+                                    <td>
+                                        <a href="/admin/orders" style="color: #0f172a; font-weight: 700; font-family: monospace; text-decoration: none;"
+                                           th:text="${order.orderCode}">ORD-123</a>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600;" th:text="${order.customerName}">Nguyễn Văn A</div>
+                                        <div style="font-size: 0.76rem; color: var(--admin-text-muted);" th:text="${order.customerPhone}">0912...</div>
+                                    </td>
+                                    <td style="font-size: 0.8rem; color: var(--admin-text-muted);"
+                                        th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/11/2026</td>
+                                    <td>
+                                        <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                                    </td>
+                                    <td>
+                                        <span th:class="'admin-status-badge ' + ${order.orderStatus.badgeClass}" th:text="${order.orderStatus.displayName}">Chờ xử lý</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bảng Cảnh báo biến thể sắp hết hàng -->
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <div class="admin-card-header">
+                        <div>
+                            <h2 class="admin-card-title">Cảnh Báo Phiên Bản Sắp Hết Kho</h2>
+                            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;">Các ấn bản có tồn kho &le; 15 cuốn cần nhập thêm</p>
+                        </div>
+                        <a href="/admin/books" class="admin-btn admin-btn-secondary admin-btn-sm">
+                            Kho sách &rarr;
+                        </a>
+                    </div>
+
+                    <div th:if="${lowStockVariants.isEmpty()}" style="padding: 40px 20px; text-align: center; color: #166534; font-size: 0.86rem;">
+                        Tất cả các phiên bản sách đều đang dồi dào tồn kho (&gt; 15 cuốn).
+                    </div>
+
+                    <div class="admin-low-stock-list" th:unless="${lowStockVariants.isEmpty()}">
+                        <div class="admin-low-stock-item" th:each="v : ${lowStockVariants}">
+                            <div style="min-width: 0;">
+                                <div style="font-size: 0.84rem; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                     th:text="${v.book.title}">Tên sách</div>
+                                <div style="font-size: 0.77rem; color: var(--admin-text-muted); margin-top: 2px;">
+                                    <span th:text="${v.variantName}">Bản đặc biệt</span>
+                                    <span style="font-family: monospace;" th:if="${v.sku != null}" th:text="' [' + ${v.sku} + ']'">[SKU]</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                                <span th:style="${v.stockQuantity <= 8} ? 'background: #fee2e2; color: #b91c1c; font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;' : 'background: #fef3c7; color: #b45309; font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;'"
+                                      th:text="'Còn ' + ${v.stockQuantity} + ' cuốn'">Còn 8 cuốn</span>
+                                <a th:href="@{/admin/inventory(variantId=${v.id})}" class="admin-btn admin-btn-secondary admin-btn-sm">
+                                    Nhập kho
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- JSON DỮ LIỆU THỐNG KÊ TỪ BACKEND -->
+    <script id="dashboardChartData" type="application/json" th:utext="${dashboardChartsJson}">{}</script>
+
+    <!-- KHỞI TẠO 4 BIỂU ĐỒ TƯƠNG TÁC BẰNG CHART.JS -->
+    <script>
+        (function initAdminCharts() {
+            const rawJsonEl = document.getElementById('dashboardChartData');
+            let stats = {};
+            try {
+                stats = JSON.parse(rawJsonEl ? rawJsonEl.textContent : '{}');
+            } catch (e) {
+                console.error('Lỗi đọc dữ liệu biểu đồ:', e);
+            }
+
+            if (typeof Chart === 'undefined') {
+                return;
+            }
+
+            Chart.defaults.font.family = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            const fmtCurrency = (val) => new Intl.NumberFormat('vi-VN').format(val || 0) + ' đ';
+
+            // 1. Biểu đồ Doanh thu & Số đơn theo ngày (Combo Bar + Line)
+            const revCtx = document.getElementById('revenueOrdersChart');
+            if (revCtx) {
+                new Chart(revCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: stats.revenueLabels || [],
+                        datasets: [
+                            {
+                                label: 'Giá trị đặt hàng (VNĐ)',
+                                data: stats.revenueValues || [],
+                                backgroundColor: 'rgba(37, 99, 235, 0.85)',
+                                hoverBackgroundColor: '#1d4ed8',
+                                borderRadius: 6,
+                                maxBarThickness: 38,
+                                yAxisID: 'yRevenue',
+                                order: 2
+                            },
+                            {
+                                type: 'line',
+                                label: 'Số đơn hàng',
+                                data: stats.orderCountValues || [],
+                                borderColor: '#10b981',
+                                backgroundColor: '#10b981',
+                                borderWidth: 2.5,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                tension: 0.32,
+                                yAxisID: 'yOrders',
+                                order: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        if (ctx.dataset.yAxisID === 'yRevenue') {
+                                            return ' Doanh thu: ' + fmtCurrency(ctx.parsed.y);
+                                        }
+                                        return ' Số đơn: ' + ctx.parsed.y + ' đơn';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            yRevenue: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                grid: { color: '#f1f5f9' },
+                                ticks: {
+                                    callback: (v) => v >= 1000 ? (v / 1000) + 'k' : v
+                                }
+                            },
+                            yOrders: {
+                                type: 'linear',
+                                position: 'right',
+                                beginAtZero: true,
+                                grid: { drawOnChartArea: false },
+                                ticks: { stepSize: 1, precision: 0 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Biểu đồ Trạng thái đơn hàng (Doughnut)
+            const statusCtx = document.getElementById('orderStatusChart');
+            if (statusCtx) {
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: stats.statusLabels || [],
+                        datasets: [{
+                            data: stats.statusCounts || [],
+                            backgroundColor: ['#f59e0b', '#0ea5e9', '#8b5cf6', '#10b981', '#ef4444'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '64%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 14, boxWidth: 12, usePointStyle: true }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => ' ' + ctx.label + ': ' + ctx.parsed + ' đơn'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 3. Biểu đồ Top sách doanh thu cao (Horizontal Bar)
+            const topBooksCtx = document.getElementById('topBooksChart');
+            if (topBooksCtx) {
+                const quantities = stats.topBookQuantities || [];
+                new Chart(topBooksCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: (stats.topBookLabels && stats.topBookLabels.length > 0) ? stats.topBookLabels : ['Chưa có dữ liệu bán'],
+                        datasets: [{
+                            label: 'Doanh thu sách (VNĐ)',
+                            data: (stats.topBookRevenues && stats.topBookRevenues.length > 0) ? stats.topBookRevenues : [0],
+                            backgroundColor: ['#0f172a', '#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'],
+                            borderRadius: 5,
+                            barThickness: 22
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const qty = quantities[ctx.dataIndex] || 0;
+                                        return ' Doanh thu: ' + fmtCurrency(ctx.parsed.x) + ' (' + qty + ' cuốn)';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { color: '#f1f5f9' },
+                                ticks: { callback: (v) => v >= 1000 ? (v / 1000) + 'k' : v }
+                            },
+                            y: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 4. Biểu đồ Tồn kho theo Thể loại (Bar)
+            const catCtx = document.getElementById('categoryStockChart');
+            if (catCtx) {
+                const bookCounts = stats.categoryBookCounts || [];
+                new Chart(catCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: stats.categoryLabels || [],
+                        datasets: [{
+                            label: 'Tổng tồn kho (cuốn)',
+                            data: stats.categoryStocks || [],
+                            backgroundColor: ['rgba(16, 185, 129, 0.85)', 'rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)', 'rgba(245, 158, 11, 0.85)', 'rgba(236, 72, 153, 0.85)'],
+                            borderRadius: 6,
+                            maxBarThickness: 42
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const bCount = bookCounts[ctx.dataIndex] || 0;
+                                        return ' Tồn kho: ' + ctx.parsed.y + ' cuốn (' + bCount + ' đầu sách)';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

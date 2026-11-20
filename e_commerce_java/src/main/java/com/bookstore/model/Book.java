@@ -37,6 +37,19 @@ public class Book {
     @Column(name = "description")
     private String description;
 
+    /**
+     * Mục lục hoặc trích đoạn đọc thử (làm ngữ liệu chuẩn xác cho AI tóm tắt và cho khách đọc thử)
+     */
+    @Lob
+    @Column(name = "sample_excerpt")
+    private String sampleExcerpt;
+
+    /**
+     * Đường dẫn file tài liệu đọc thử (.pdf / .txt) do Admin tải lên
+     */
+    @Column(name = "sample_pdf_url", length = 500)
+    private String samplePdfUrl;
+
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
@@ -50,6 +63,12 @@ public class Book {
      */
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<BookVariant> variants = new ArrayList<>();
+
+    /**
+     * Quan hệ 1 - 1: Bản tóm tắt thông minh bằng AI được lưu cache trong CSDL
+     */
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private BookAiSummary aiSummary;
 
     @Column(name = "is_featured")
     private Boolean featured = false; // Sách nổi bật hiển thị ở trang chủ
@@ -197,6 +216,37 @@ public class Book {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSampleExcerpt() {
+        return sampleExcerpt;
+    }
+
+    public void setSampleExcerpt(String sampleExcerpt) {
+        this.sampleExcerpt = sampleExcerpt;
+    }
+
+    public String getSamplePdfUrl() {
+        return samplePdfUrl;
+    }
+
+    public void setSamplePdfUrl(String samplePdfUrl) {
+        this.samplePdfUrl = samplePdfUrl;
+    }
+
+    public BookAiSummary getAiSummary() {
+        return aiSummary;
+    }
+
+    public void setAiSummary(BookAiSummary aiSummary) {
+        this.aiSummary = aiSummary;
+        if (aiSummary != null && aiSummary.getBook() != this) {
+            aiSummary.setBook(this);
+        }
+    }
+
+    public boolean hasAiSummary() {
+        return aiSummary != null && aiSummary.getShortSummary() != null && !aiSummary.getShortSummary().isBlank();
     }
 
     public String getImageUrl() {

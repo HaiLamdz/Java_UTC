@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Hóa Đơn ' + ${order.orderCode} + ' - BookStore'">Hóa Đơn Bán Hàng</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 32px 16px;
+            line-height: 1.55;
+        }
+        .invoice-toolbar {
+            max-width: 780px;
+            margin: 0 auto 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-print {
+            background: #0f172a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .invoice-paper {
+            max-width: 780px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 44px 48px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+        }
+        .brand-name { font-size: 1.5rem; font-weight: 800; letter-spacing: 0.04em; }
+        .invoice-title { font-size: 1.35rem; font-weight: 800; text-transform: uppercase; text-align: right; }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        th {
+            background: #f8fafc;
+            border-top: 1px solid #0f172a;
+            border-bottom: 1px solid #0f172a;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+        .totals-box {
+            margin-left: auto;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.92rem;
+        }
+        .totals-row { display: flex; justify-content: space-between; }
+        .totals-final {
+            border-top: 2px solid #0f172a;
+            padding-top: 10px;
+            font-size: 1.12rem;
+            font-weight: 800;
+        }
+        .sign-grid {
+            margin-top: 48px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            font-size: 0.88rem;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .invoice-toolbar { display: none; }
+            .invoice-paper { border: none; box-shadow: none; padding: 16px; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-toolbar">
+        <a th:href="@{/admin/orders/{id}(id=${order.id})}" style="color: #334155; text-decoration: none; font-weight: 600;">&larr; Quay lại chi tiết đơn</a>
+        <button type="button" class="btn-print" onclick="window.print()">&#128424; In Hóa Đơn / Lưu PDF</button>
+    </div>
+
+    <div class="invoice-paper">
+        <div class="invoice-header">
+            <div>
+                <div class="brand-name">BOOKSTORE</div>
+                <div style="font-size: 0.84rem; color: #475569;">Hệ Thống Nhà Sách Trực Tuyến &mdash; Ấn Bản &amp; Tri Thức</div>
+                <div style="font-size: 0.82rem; color: #64748b;">Hotline: 1900 6868 &bull; Email: support@bookstore.com</div>
+            </div>
+            <div>
+                <div class="invoice-title">Hóa Đơn Bán Lẻ</div>
+                <div style="font-size: 0.88rem; text-align: right; margin-top: 4px;">
+                    Mã đơn: <strong style="font-family: monospace;" th:text="${order.orderCode}">ORD-123</strong><br>
+                    Ngày lập: <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/11/2026</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="meta-grid">
+            <div>
+                <strong>Khách hàng nhận sách:</strong><br>
+                Họ tên: <span th:text="${order.customerName}">Nguyễn Văn A</span><br>
+                Điện thoại: <span th:text="${order.customerPhone}">0912345678</span><br>
+                Địa chỉ: <span th:text="${order.shippingAddress}">Hà Nội</span>
+            </div>
+            <div>
+                <strong>Thông tin thanh toán:</strong><br>
+                Phương thức: <span th:text="${order.paymentMethodDisplay}">VietQR</span><br>
+                Trạng thái TT: <strong th:text="${order.paymentStatus.displayName}">Đã thanh toán</strong><br>
+                Trạng thái đơn: <span th:text="${order.orderStatus.displayName}">Hoàn thành</span>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 45px;">STT</th>
+                    <th>Tên tác phẩm &amp; Phiên bản bìa</th>
+                    <th style="text-align: right;">Đơn giá</th>
+                    <th style="text-align: center; width: 65px;">SL</th>
+                    <th style="text-align: right;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item, stat : ${order.items}">
+                    <td th:text="${stat.count}">1</td>
+                    <td>
+                        <strong th:text="${item.bookTitle}">Tên sách</strong>
+                        <div style="font-size: 0.8rem; color: #475569;" th:text="'Phiên bản: ' + ${item.variantName}">Bìa mềm</div>
+                    </td>
+                    <td style="text-align: right;" th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                    <td style="text-align: center;" th:text="${item.quantity}">1</td>
+                    <td style="text-align: right; font-weight: 600;" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals-box">
+            <div class="totals-row">
+                <span>Tạm tính:</span>
+                <span th:text="${#numbers.formatDecimal(order.subtotalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</span>
+            </div>
+            <div class="totals-row" th:if="${order.discountAmount > 0}" style="color: #166534;">
+                <span th:text="'Chiết khấu Voucher (' + ${order.voucherCode} + '):'">Voucher:</span>
+                <span th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">-30.000 đ</span>
+            </div>
+            <div class="totals-row">
+                <span>Phí giao hàng:</span>
+                <span>0 đ (Miễn phí)</span>
+            </div>
+            <div class="totals-row totals-final">
+                <span>TỔNG THANH TOÁN:</span>
+                <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</span>
+            </div>
+        </div>
+
+        <div class="sign-grid">
+            <div>
+                <strong>Người mua hàng</strong>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 56px;">(Ký, ghi rõ họ tên)</div>
+                <span th:text="${order.customerName}">Khách hàng</span>
+            </div>
+            <div>
+                <strong>Đại diện Nhà sách BookStore</strong>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 56px;">(Ký, đóng dấu xác nhận)</div>
+                <span>Phòng Quản lý Kinh doanh</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+

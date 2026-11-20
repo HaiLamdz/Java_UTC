@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Phiếu Nhập Kho - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css(v=3)}">
+</head>
+<body class="admin-body">
+
+    <div th:replace="~{admin/layout :: sidebar('inventory')}"></div>
+
+    <div class="admin-main-wrapper">
+        <div th:replace="~{admin/layout :: topbar('Nhập Kho & Biến Động Tồn Kho', 'Quản lý kho')}"></div>
+
+        <main class="admin-content">
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Phiếu Nhập Kho Ấn Bản Sách</h1>
+                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    Lập phiếu nhập bổ sung tồn kho cho từng biến thể (SKU) và lưu trữ nhật ký chứng từ nhập hàng.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 380px 1fr; gap: 22px; align-items: start;">
+                <!-- FORM LẬP PHIẾU NHẬP KHO -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Lập Phiếu Nhập Kho Mới</h3>
+                    </div>
+                    <form action="/admin/inventory/import" method="POST" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">
+                                Chọn sách &amp; phiên bản bìa cần nhập <span style="color:#b91c1c">*</span>
+                            </label>
+                            <select name="variantId" required
+                                    style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.84rem; background: #fff;">
+                                <option value="">-- Chọn biến thể ấn bản --</option>
+                                <option th:each="v : ${variants}"
+                                        th:value="${v.id}"
+                                        th:selected="${preselectedVariantId != null && preselectedVariantId == v.id}"
+                                        th:text="'[Tồn: ' + ${v.stockQuantity} + '] ' + ${v.book.title} + ' - ' + ${v.variantName}">
+                                    Biến thể
+                                </option>
+                            </select>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Số lượng nhập thêm <span style="color:#b91c1c">*</span></label>
+                                <input type="number" name="quantityAdded" min="1" value="20" required
+                                       style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.86rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Đơn giá nhập (VNĐ)</label>
+                                <input type="number" name="importPrice" min="0" placeholder="Tự ước tính nếu trống"
+                                       style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.86rem;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Nhà cung cấp / Nhà phát hành</label>
+                            <input type="text" name="supplierName" placeholder="VD: NXB Trẻ / Nhã Nam / Fahasa..."
+                                   style="width: 100%; padding: 9px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.86rem;">
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Ghi chú chứng từ</label>
+                            <textarea name="note" rows="2" placeholder="VD: Nhập bổ sung đợt cao điểm..."
+                                      style="width: 100%; padding: 9px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;"></textarea>
+                        </div>
+
+                        <button type="submit" class="admin-btn admin-btn-primary" style="justify-content: center; padding: 10px;">
+                            + Xác Nhận Nhập Kho
+                        </button>
+                    </form>
+                </div>
+
+                <!-- LỊCH SỬ PHIẾU NHẬP KHO -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Lịch Sử Chứng Từ Nhập Kho</h3>
+                        <span style="font-size: 0.8rem; color: var(--admin-text-muted);" th:text="${receipts.size()} + ' phiếu nhập'">0 phiếu</span>
+                    </div>
+
+                    <div th:if="${receipts.isEmpty()}" style="padding: 44px 20px; text-align: center; color: var(--admin-text-muted); font-size: 0.88rem;">
+                        Chưa có phiếu nhập kho nào phát sinh. Hãy lập phiếu nhập bên trái để cộng thêm tồn kho và lưu lịch sử!
+                    </div>
+
+                    <div th:unless="${receipts.isEmpty()}" style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã phiếu</th>
+                                    <th>Sách &amp; Biến thể</th>
+                                    <th>SL Nhập</th>
+                                    <th>Tồn sau nhập</th>
+                                    <th>Tổng vốn nhập</th>
+                                    <th>Nhà cung cấp</th>
+                                    <th>Thời gian</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="r : ${receipts}">
+                                    <td>
+                                        <strong style="font-family: monospace; color: #0f172a;" th:text="${r.receiptCode}">NK-123</strong>
+                                        <div style="font-size: 0.72rem; color: var(--admin-text-muted);" th:text="'Người lập: ' + ${r.createdBy}">admin</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600; color: #0f172a;" th:text="${r.bookTitle}">Tên sách</div>
+                                        <div style="font-size: 0.76rem; color: var(--admin-text-muted);">
+                                            <span th:text="${r.variantName}">Bìa mềm</span>
+                                            <span th:if="${r.sku != null}" style="font-family: monospace;" th:text="' [' + ${r.sku} + ']'"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span style="background: #dcfce7; color: #166534; font-weight: 700; padding: 3px 8px; border-radius: 999px; font-size: 0.78rem;"
+                                              th:text="'+' + ${r.quantityAdded}">+20</span>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${r.stockAfter} + ' cuốn'">50 cuốn</strong>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${#numbers.formatDecimal(r.totalImportCost, 0, 'COMMA', 0, 'POINT')} + ' đ'">1.500.000 đ</strong>
+                                    </td>
+                                    <td style="font-size: 0.82rem;" th:text="${r.supplierName}">NXB Trẻ</td>
+                                    <td style="font-size: 0.8rem; color: var(--admin-text-muted);"
+                                        th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">21/11/2026</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
+

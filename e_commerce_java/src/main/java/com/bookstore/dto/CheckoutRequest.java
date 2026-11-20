@@ -17,7 +17,9 @@ public class CheckoutRequest {
 
     private String note;
 
-    private String paymentMethod = "COD"; // COD: Thanh toán khi nhận hàng, BANK_TRANSFER: Chuyển khoản
+    private String paymentMethod = "COD"; // COD hoặc VIETQR
+
+    private String voucherCode;
 
     public CheckoutRequest() {
     }
@@ -60,5 +62,13 @@ public class CheckoutRequest {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getVoucherCode() {
+        return voucherCode;
+    }
+
+    public void setVoucherCode(String voucherCode) {
+        this.voucherCode = voucherCode;
     }
 }
