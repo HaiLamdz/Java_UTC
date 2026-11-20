@@ -84,12 +84,22 @@ public class BookService {
         book.setPublishYear(form.getPublishYear());
         book.setIsbn(form.getIsbn());
         book.setDescription(form.getDescription());
+        book.setSampleExcerpt(form.getSampleExcerpt());
+        if (form.getSamplePdfUrl() != null && !form.getSamplePdfUrl().trim().isEmpty()) {
+            book.setSamplePdfUrl(form.getSamplePdfUrl().trim());
+        } else if (form.getSamplePdfUrl() != null && form.getSamplePdfUrl().trim().isEmpty()) {
+            book.setSamplePdfUrl(null);
+        }
         book.setImageUrl(form.getImageUrl());
         book.setFeatured(form.getFeatured());
 
         if (form.getCategoryId() != null) {
             Category category = categoryRepository.findById(form.getCategoryId()).orElse(null);
             book.setCategory(category);
+        }
+
+        if (book.getAiSummary() != null) {
+            book.setAiSummary(null);
         }
 
         // Xử lý các biến thể

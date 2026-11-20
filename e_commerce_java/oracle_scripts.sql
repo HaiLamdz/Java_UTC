@@ -1,6 +1,9 @@
 -- ==============================================================
 -- BÀI TẬP LỚN: HỆ QUẢN TRỊ CƠ SỞ DỮ LIỆU ORACLE
 -- ĐỀ TÀI: HỆ THỐNG QUẢN LÝ VÀ BÁN SÁCH ĐA BIẾN THỂ (BOOKSTORE)
+-- LƯU Ý TIẾNG VIỆT TRÊN WINDOWS: Trước khi chạy sqlplus trên CMD/PowerShell,
+-- hãy chạy lệnh: SET NLS_LANG=AMERICAN_AMERICA.AL32UTF8 (CMD)
+-- hoặc: $env:NLS_LANG='AMERICAN_AMERICA.AL32UTF8' (PowerShell) để không bị lỗi dấu ?
 -- ==============================================================
 
 -- ==============================================================
@@ -60,6 +63,8 @@ CREATE TABLE books (
     publish_year NUMBER(4),
     isbn VARCHAR2(30),
     description CLOB,
+    sample_excerpt CLOB,
+    sample_pdf_url VARCHAR2(500),
     image_url VARCHAR2(500),
     category_id NUMBER,
     is_featured NUMBER(1) DEFAULT 0 CHECK (is_featured IN (0, 1)),
@@ -77,7 +82,6 @@ CREATE TABLE book_variants (
     original_price NUMBER(12, 2) CHECK (original_price >= 0),
     stock_quantity NUMBER(8) DEFAULT 0 NOT NULL CHECK (stock_quantity >= 0),
     is_default NUMBER(1) DEFAULT 0 CHECK (is_default IN (0, 1)),
-    image_url VARCHAR2(500),
     CONSTRAINT fk_variants_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
 
@@ -112,6 +116,55 @@ CREATE TABLE order_items (
     CONSTRAINT fk_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     CONSTRAINT fk_items_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE SET NULL,
     CONSTRAINT fk_items_variant FOREIGN KEY (variant_id) REFERENCES book_variants(id) ON DELETE SET NULL
+);
+
+-- Bảng 7: BOOK_AI_SUMMARIES (Lưu trữ Cache Bản Tóm Tắt & Điểm Sách Bằng AI)
+CREATE TABLE book_ai_summaries (
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    book_id NUMBER NOT NULL UNIQUE,
+    short_summary CLOB NOT NULL,
+    key_takeaways CLOB,
+    target_audience CLOB,
+    reading_time_minutes NUMBER(6) DEFAULT 240,
+    ai_model VARCHAR2(80),
+    generated_count NUMBER(6) DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ai_summary_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+);
+
+-- Bảng 8: VOUCHERS (Mã giảm giá / Khuyến mãi áp dụng lúc Thanh toán)
+CREATE TABLE vouchers (
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    code VARCHAR2(30) NOT NULL UNIQUE,
+    description VARCHAR2(200),
+    discount_type VARCHAR2(20) DEFAULT 'PERCENT' NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED')),
+    discount_value NUMBER(12, 2) NOT NULL CHECK (discount_value >= 0),
+    max_discount_amount NUMBER(12, 2),
+    min_order_amount NUMBER(12, 2) DEFAULT 0,
+    usage_limit NUMBER(8) DEFAULT 100,
+    used_count NUMBER(8) DEFAULT 0,
+    start_date DATE,
+    end_date DATE,
+    is_active NUMBER(1) DEFAULT 1 CHECK (is_active IN (0, 1)),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bảng 9: STOCK_RECEIPTS (Phiếu nhập kho biến thể sách & Lịch sử biến động kho)
+CREATE TABLE stock_receipts (
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    receipt_code VARCHAR2(40) NOT NULL UNIQUE,
+    variant_id NUMBER,
+    book_title VARCHAR2(200) NOT NULL,
+    variant_name VARCHAR2(100) NOT NULL,
+    sku VARCHAR2(50),
+    quantity_added NUMBER(8) NOT NULL CHECK (quantity_added > 0),
+    stock_after NUMBER(8) NOT NULL,
+    import_price NUMBER(12, 2) DEFAULT 0 NOT NULL,
+    supplier_name VARCHAR2(150),
+    note VARCHAR2(300),
+    created_by VARCHAR2(80),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_receipt_variant FOREIGN KEY (variant_id) REFERENCES book_variants(id) ON DELETE SET NULL
 );
 
 -- ==============================================================

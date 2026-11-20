@@ -20,7 +20,16 @@ public class BookForm {
     private Integer publishYear;
     private String isbn;
     private String description;
+    private String sampleExcerpt;
+    private String samplePdfUrl;
     private String imageUrl;
+
+    // Các trường Tóm tắt sách bằng AI để Admin xem trước, chỉnh sửa & lưu kèm sách
+    private String aiShortSummary;
+    private String aiKeyTakeaways;
+    private String aiTargetAudience;
+    private Integer aiReadingTimeMinutes;
+    private String aiModel;
 
     @NotNull(message = "Vui lòng chọn thể loại sách")
     private Long categoryId;
@@ -92,6 +101,62 @@ public class BookForm {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSampleExcerpt() {
+        return sampleExcerpt;
+    }
+
+    public void setSampleExcerpt(String sampleExcerpt) {
+        this.sampleExcerpt = sampleExcerpt;
+    }
+
+    public String getSamplePdfUrl() {
+        return samplePdfUrl;
+    }
+
+    public void setSamplePdfUrl(String samplePdfUrl) {
+        this.samplePdfUrl = samplePdfUrl;
+    }
+
+    public String getAiShortSummary() {
+        return aiShortSummary;
+    }
+
+    public void setAiShortSummary(String aiShortSummary) {
+        this.aiShortSummary = aiShortSummary;
+    }
+
+    public String getAiKeyTakeaways() {
+        return aiKeyTakeaways;
+    }
+
+    public void setAiKeyTakeaways(String aiKeyTakeaways) {
+        this.aiKeyTakeaways = aiKeyTakeaways;
+    }
+
+    public String getAiTargetAudience() {
+        return aiTargetAudience;
+    }
+
+    public void setAiTargetAudience(String aiTargetAudience) {
+        this.aiTargetAudience = aiTargetAudience;
+    }
+
+    public Integer getAiReadingTimeMinutes() {
+        return aiReadingTimeMinutes;
+    }
+
+    public void setAiReadingTimeMinutes(Integer aiReadingTimeMinutes) {
+        this.aiReadingTimeMinutes = aiReadingTimeMinutes;
+    }
+
+    public String getAiModel() {
+        return aiModel;
+    }
+
+    public void setAiModel(String aiModel) {
+        this.aiModel = aiModel;
     }
 
     public String getImageUrl() {

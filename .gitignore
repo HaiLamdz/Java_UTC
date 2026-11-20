@@ -34,3 +34,5 @@ uploads/*
 !uploads/.gitignore
 **/uploads/*
 !**/uploads/.gitignore
+
+*application-local.properties

@@ -64,7 +64,10 @@
                                         <a th:href="@{/admin/books/edit/{id}(id=${book.id})}" 
                                            style="font-weight: 600; color: #0f172a; text-decoration: none;" th:text="${book.title}">Tên sách</a>
                                         <div style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 2px;" th:text="'Tác giả: ' + ${book.author}">Tác giả</div>
-                                        <span th:if="${book.featured}" style="display: inline-block; font-size: 0.68rem; background: #fef3c7; color: #b45309; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">Nổi bật</span>
+                                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px;">
+                                            <span th:if="${book.featured}" style="display: inline-block; font-size: 0.68rem; background: #fef3c7; color: #b45309; font-weight: 600; padding: 2px 6px; border-radius: 4px;">Nổi bật</span>
+                                            <span th:if="${book.samplePdfUrl != null && !book.samplePdfUrl.isEmpty()}" style="display: inline-block; font-size: 0.68rem; background: #dbeafe; color: #1d4ed8; font-weight: 600; padding: 2px 6px; border-radius: 4px;">Có file đọc thử PDF</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>

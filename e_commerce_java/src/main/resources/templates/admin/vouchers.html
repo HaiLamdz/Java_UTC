@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Mã Giảm Giá (Voucher) - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css(v=3)}">
+</head>
+<body class="admin-body">
+
+    <div th:replace="~{admin/layout :: sidebar('vouchers')}"></div>
+
+    <div class="admin-main-wrapper">
+        <div th:replace="~{admin/layout :: topbar('Mã Giảm Giá & Khuyến Mãi', 'Kinh doanh')}"></div>
+
+        <main class="admin-content">
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Mã Giảm Giá &amp; Chương Trình Khuyến Mãi</h1>
+                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    Tạo mã giảm theo phần trăm (%) hoặc số tiền cố định, kiểm soát đơn tối thiểu, hạn dùng và số lượt sử dụng.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 360px 1fr; gap: 22px; align-items: start;">
+                <!-- FORM TẠO MÃ GIẢM GIÁ MỚI -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Tạo Mã Giảm Giá Mới</h3>
+                    </div>
+                    <form action="/admin/vouchers/save" method="POST" th:object="${newVoucher}" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Mã code <span style="color:#b91c1c">*</span></label>
+                            <input type="text" th:field="*{code}" required placeholder="VD: SUMMER20"
+                                   style="width: 100%; padding: 9px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); text-transform: uppercase; font-family: monospace; font-weight: 700;">
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Mô tả ưu đãi <span style="color:#b91c1c">*</span></label>
+                            <input type="text" th:field="*{description}" required placeholder="VD: Giảm 20% tối đa 40k cho đơn từ 120k"
+                                   style="width: 100%; padding: 9px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.86rem;">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Loại giảm giá</label>
+                                <select th:field="*{discountType}" style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem; background: #fff;">
+                                    <option th:each="dt : ${discountTypes}" th:value="${dt.name()}" th:text="${dt.displayName}"></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Mức giảm (% / VNĐ) <span style="color:#b91c1c">*</span></label>
+                                <input type="number" th:field="*{discountValue}" min="1" required placeholder="15 hoặc 30000"
+                                       style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Đơn tối thiểu (VNĐ)</label>
+                                <input type="number" th:field="*{minOrderAmount}" min="0" value="100000"
+                                       style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Giảm tối đa (VNĐ)</label>
+                                <input type="number" th:field="*{maxDiscountAmount}" min="0" placeholder="Để trống nếu giảm tiền"
+                                       style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Giới hạn lượt dùng</label>
+                                <input type="number" th:field="*{usageLimit}" min="1" value="50"
+                                       style="width: 100%; padding: 9px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;">Ngày hết hạn</label>
+                                <input type="date" th:field="*{endDate}"
+                                       style="width: 100%; padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="admin-btn admin-btn-primary" style="justify-content: center; padding: 10px;">
+                            + Phát Hành Mã Giảm Giá
+                        </button>
+                    </form>
+                </div>
+
+                <!-- DANH SÁCH VOUCHER -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Danh Sách Voucher Hiện Có</h3>
+                        <span style="font-size: 0.8rem; color: var(--admin-text-muted);" th:text="${vouchers.size()} + ' mã'">3 mã</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã Voucher</th>
+                                    <th>Chi tiết ưu đãi</th>
+                                    <th>Đơn tối thiểu</th>
+                                    <th>Lượt dùng</th>
+                                    <th>Hạn dùng</th>
+                                    <th>Trạng thái</th>
+                                    <th style="text-align: right;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="v : ${vouchers}">
+                                    <td>
+                                        <span style="font-family: monospace; font-weight: 700; font-size: 0.9rem; background: #eff6ff; color: #1d4ed8; padding: 4px 8px; border-radius: 4px;"
+                                              th:text="${v.code}">SACHMOI15</span>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600; color: #0f172a;"
+                                             th:text="${v.discountType.name() == 'PERCENT'} ? ('Giảm ' + ${#numbers.formatDecimal(v.discountValue,0,'COMMA',0,'POINT')} + '%' + (${v.maxDiscountAmount != null} ? (' (Tối đa ' + ${#numbers.formatDecimal(v.maxDiscountAmount,0,'COMMA',0,'POINT')} + 'đ)') : '')) : ('Giảm ' + ${#numbers.formatDecimal(v.discountValue,0,'COMMA',0,'POINT')} + ' đ')">
+                                            Giảm 15%
+                                        </div>
+                                        <div style="font-size: 0.76rem; color: var(--admin-text-muted);" th:text="${v.description}">Mô tả</div>
+                                    </td>
+                                    <td th:text="${#numbers.formatDecimal(v.minOrderAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                                    <td>
+                                        <strong th:text="${v.usedCount} + ' / ' + ${v.usageLimit}">0 / 100</strong>
+                                    </td>
+                                    <td style="font-size: 0.8rem;" th:text="${v.endDate != null ? #temporals.format(v.endDate, 'dd/MM/yyyy') : 'Không giới hạn'}">31/12/2026</td>
+                                    <td>
+                                        <span th:if="${v.validNow}" class="admin-status-badge badge-completed">Đang mở</span>
+                                        <span th:unless="${v.validNow}" class="admin-status-badge badge-cancelled">Tạm ngưng / Hết hạn</span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div style="display: inline-flex; gap: 6px;">
+                                            <form th:action="@{/admin/vouchers/{id}/toggle(id=${v.id})}" method="POST" style="display: inline;">
+                                                <button type="submit" class="admin-btn admin-btn-secondary admin-btn-sm"
+                                                        th:text="${v.active ? 'Tạm ngưng' : 'Kích hoạt'}">Tạm ngưng</button>
+                                            </form>
+                                            <a th:href="@{/admin/vouchers/delete/{id}(id=${v.id})}"
+                                               onclick="return confirm('Xóa mã giảm giá này?')"
+                                               class="admin-btn admin-btn-danger admin-btn-sm">Xóa</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
+

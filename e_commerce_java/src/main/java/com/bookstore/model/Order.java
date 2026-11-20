@@ -32,11 +32,24 @@ public class Order {
     private String note;
 
     @Column(name = "payment_method", nullable = false, length = 50)
-    private String paymentMethod = "COD"; // COD hoặc BANK_TRANSFER
+    private String paymentMethod = "COD"; // COD hoặc VIETQR
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", length = 30)
+    private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 30)
     private OrderStatus orderStatus = OrderStatus.PENDING;
+
+    @Column(name = "subtotal_amount")
+    private Double subtotalAmount = 0.0;
+
+    @Column(name = "discount_amount")
+    private Double discountAmount = 0.0;
+
+    @Column(name = "voucher_code", length = 30)
+    private String voucherCode;
 
     @Column(name = "total_amount", nullable = false)
     private Double totalAmount = 0.0;
@@ -79,13 +92,26 @@ public class Order {
     }
 
     public void calculateTotal() {
+        double sub = 0.0;
         if (items != null) {
-            this.totalAmount = items.stream()
+            sub = items.stream()
                     .mapToDouble(i -> i.getSubtotal() != null ? i.getSubtotal() : 0.0)
                     .sum();
-        } else {
-            this.totalAmount = 0.0;
         }
+        this.subtotalAmount = sub;
+        double disc = this.discountAmount != null ? this.discountAmount : 0.0;
+        this.totalAmount = Math.max(0.0, sub - disc);
+    }
+
+    public String getPaymentMethodDisplay() {
+        if ("VIETQR".equalsIgnoreCase(paymentMethod) || "BANK_TRANSFER".equalsIgnoreCase(paymentMethod)) {
+            return "Chuyển khoản VietQR";
+        }
+        return "Thanh toán khi nhận hàng (COD)";
+    }
+
+    public boolean isVietQrPayment() {
+        return "VIETQR".equalsIgnoreCase(paymentMethod) || "BANK_TRANSFER".equalsIgnoreCase(paymentMethod);
     }
 
     public int getTotalItemQuantity() {
@@ -150,6 +176,44 @@ public class Order {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        if (paymentStatus != null) {
+            return paymentStatus;
+        }
+        return orderStatus == OrderStatus.COMPLETED ? PaymentStatus.PAID : PaymentStatus.UNPAID;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public Double getSubtotalAmount() {
+        if (subtotalAmount != null && subtotalAmount > 0) {
+            return subtotalAmount;
+        }
+        return (totalAmount != null ? totalAmount : 0.0) + getDiscountAmount();
+    }
+
+    public void setSubtotalAmount(Double subtotalAmount) {
+        this.subtotalAmount = subtotalAmount;
+    }
+
+    public Double getDiscountAmount() {
+        return discountAmount != null ? discountAmount : 0.0;
+    }
+
+    public void setDiscountAmount(Double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public String getVoucherCode() {
+        return voucherCode;
+    }
+
+    public void setVoucherCode(String voucherCode) {
+        this.voucherCode = voucherCode;
     }
 
     public OrderStatus getOrderStatus() {

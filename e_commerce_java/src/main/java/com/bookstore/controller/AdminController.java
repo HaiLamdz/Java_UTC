@@ -9,8 +9,11 @@ import com.bookstore.model.*;
 import com.bookstore.repository.BookVariantRepository;
 import com.bookstore.service.BookService;
 import com.bookstore.service.CategoryService;
+import com.bookstore.service.InventoryService;
 import com.bookstore.service.OrderService;
+import com.bookstore.service.PreviewDocumentService;
 import com.bookstore.service.UserService;
+import com.bookstore.service.VoucherService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -26,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,17 +44,26 @@ public class AdminController {
     private final OrderService orderService;
     private final BookVariantRepository bookVariantRepository;
     private final UserService userService;
+    private final PreviewDocumentService previewDocumentService;
+    private final VoucherService voucherService;
+    private final InventoryService inventoryService;
 
     public AdminController(BookService bookService,
                            CategoryService categoryService,
                            OrderService orderService,
                            BookVariantRepository bookVariantRepository,
-                           UserService userService) {
+                           UserService userService,
+                           PreviewDocumentService previewDocumentService,
+                           VoucherService voucherService,
+                           InventoryService inventoryService) {
         this.bookService = bookService;
         this.categoryService = categoryService;
         this.orderService = orderService;
         this.bookVariantRepository = bookVariantRepository;
         this.userService = userService;
+        this.previewDocumentService = previewDocumentService;
+        this.voucherService = voucherService;
+        this.inventoryService = inventoryService;
     }
 
     /**
@@ -128,11 +141,30 @@ public class AdminController {
                 .mapToDouble(Order::getTotalAmount)
                 .sum();
 
+        Double totalOrderValue = orders.stream()
+                .filter(o -> o.getOrderStatus() != OrderStatus.CANCELLED)
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
+
+        int totalStockUnits = books.stream()
+                .mapToInt(Book::getTotalStock)
+                .sum();
+
+        List<BookVariant> lowStockVariants = bookVariantRepository.findAll().stream()
+                .filter(v -> v.getStockQuantity() != null && v.getStockQuantity() <= 15)
+                .sorted((a, b) -> Integer.compare(a.getStockQuantity(), b.getStockQuantity()))
+                .limit(6)
+                .toList();
+
         model.addAttribute("totalBooks", totalBooks);
         model.addAttribute("totalVariants", totalVariants);
+        model.addAttribute("totalStockUnits", totalStockUnits);
         model.addAttribute("totalOrders", totalOrders);
         model.addAttribute("pendingOrders", pendingOrders);
         model.addAttribute("totalRevenue", totalRevenue);
+        model.addAttribute("totalOrderValue", totalOrderValue);
+        model.addAttribute("lowStockVariants", lowStockVariants);
+        model.addAttribute("dashboardChartsJson", orderService.buildDashboardChartsJson());
         model.addAttribute("recentOrders", orders.stream().limit(5).toList());
 
         return "admin/dashboard";
@@ -184,6 +216,8 @@ public class AdminController {
         bookForm.setPublishYear(book.getPublishYear());
         bookForm.setIsbn(book.getIsbn());
         bookForm.setDescription(book.getDescription());
+        bookForm.setSampleExcerpt(book.getSampleExcerpt());
+        bookForm.setSamplePdfUrl(book.getSamplePdfUrl());
         bookForm.setImageUrl(book.getImageUrl());
         bookForm.setCategoryId(book.getCategory() != null ? book.getCategory().getId() : null);
         bookForm.setFeatured(book.getFeatured());
@@ -271,6 +305,7 @@ public class AdminController {
     @PostMapping("/books/save")
     public String saveBook(@Valid @ModelAttribute("bookForm") BookForm bookForm,
                            BindingResult bindingResult,
+                           @RequestParam(value = "previewFile", required = false) MultipartFile previewFile,
                            HttpSession session,
                            Model model,
                            RedirectAttributes redirectAttributes) {
@@ -284,13 +319,40 @@ public class AdminController {
         }
 
         try {
+            if (previewFile != null && !previewFile.isEmpty()) {
+                PreviewDocumentService.ProcessedPreview processed = previewDocumentService.processUploadedFile(previewFile);
+                bookForm.setSamplePdfUrl(processed.getFileUrl());
+                if (bookForm.getSampleExcerpt() == null || bookForm.getSampleExcerpt().trim().isEmpty()) {
+                    bookForm.setSampleExcerpt(processed.getExtractedText());
+                }
+            }
             bookService.saveBookFromForm(bookForm);
-            redirectAttributes.addFlashAttribute("successMessage", "Lưu thông tin sách và các biến thể thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Lưu thông tin sách, biến thể và bản đọc thử thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
 
         return "redirect:/admin/books";
+    }
+
+    @PostMapping("/api/books/upload-preview")
+    @ResponseBody
+    public ResponseEntity<?> uploadAndExtractPreview(@RequestParam("file") MultipartFile file, HttpSession session) {
+        if (!checkAdmin(session)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Phiên quản trị không hợp lệ."));
+        }
+        try {
+            PreviewDocumentService.ProcessedPreview result = previewDocumentService.processUploadedFile(file);
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("fileUrl", result.getFileUrl());
+            body.put("fileName", result.getOriginalFileName());
+            body.put("extractedText", result.getExtractedText());
+            body.put("pageCount", result.getPageCount());
+            body.put("charCount", result.getCharCount());
+            return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/books/delete/{id}")
@@ -325,12 +387,38 @@ public class AdminController {
             model.addAttribute("filteredUser", null);
         }
         model.addAttribute("statuses", OrderStatus.values());
+        model.addAttribute("paymentStatuses", PaymentStatus.values());
         return "admin/orders";
+    }
+
+    @GetMapping("/orders/{id}")
+    public String adminOrderDetail(@PathVariable("id") Long id, HttpSession session, Model model) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        Order order = orderService.getOrderById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+        model.addAttribute("order", order);
+        model.addAttribute("statuses", OrderStatus.values());
+        model.addAttribute("paymentStatuses", PaymentStatus.values());
+        return "admin/order-detail";
+    }
+
+    @GetMapping("/orders/{id}/invoice")
+    public String printOrderInvoice(@PathVariable("id") Long id, HttpSession session, Model model) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        Order order = orderService.getOrderById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+        model.addAttribute("order", order);
+        return "admin/order-invoice";
     }
 
     @PostMapping("/orders/{id}/status")
     public String updateOrderStatus(@PathVariable("id") Long id,
                                     @RequestParam("status") OrderStatus status,
+                                    @RequestParam(value = "returnToDetail", defaultValue = "false") boolean returnToDetail,
                                     HttpSession session,
                                     RedirectAttributes redirectAttributes) {
         if (!checkAdmin(session)) {
@@ -342,7 +430,120 @@ public class AdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi cập nhật: " + e.getMessage());
         }
-        return "redirect:/admin/orders";
+        return returnToDetail ? ("redirect:/admin/orders/" + id) : "redirect:/admin/orders";
+    }
+
+    @PostMapping("/orders/{id}/payment-status")
+    public String updateOrderPaymentStatus(@PathVariable("id") Long id,
+                                           @RequestParam("paymentStatus") PaymentStatus paymentStatus,
+                                           @RequestParam(value = "returnToDetail", defaultValue = "true") boolean returnToDetail,
+                                           HttpSession session,
+                                           RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        try {
+            orderService.updatePaymentStatus(id, paymentStatus);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật trạng thái thanh toán: " + paymentStatus.getDisplayName());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi cập nhật thanh toán: " + e.getMessage());
+        }
+        return returnToDetail ? ("redirect:/admin/orders/" + id) : "redirect:/admin/orders";
+    }
+
+    // ================= QUẢN LÝ MÃ GIẢM GIÁ / VOUCHERS =================
+
+    @GetMapping("/vouchers")
+    public String listVouchers(HttpSession session, Model model) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        model.addAttribute("vouchers", voucherService.getAllVouchers());
+        model.addAttribute("newVoucher", new Voucher());
+        model.addAttribute("discountTypes", DiscountType.values());
+        return "admin/vouchers";
+    }
+
+    @PostMapping("/vouchers/save")
+    public String saveVoucher(@ModelAttribute("newVoucher") Voucher voucher,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        try {
+            voucherService.saveVoucher(voucher);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã lưu mã giảm giá '" + voucher.getCode() + "' thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/vouchers";
+    }
+
+    @PostMapping("/vouchers/{id}/toggle")
+    public String toggleVoucher(@PathVariable("id") Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        voucherService.toggleActive(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Đã thay đổi trạng thái hoạt động của mã giảm giá!");
+        return "redirect:/admin/vouchers";
+    }
+
+    @GetMapping("/vouchers/delete/{id}")
+    public String deleteVoucher(@PathVariable("id") Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        voucherService.deleteVoucher(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Đã xóa mã giảm giá!");
+        return "redirect:/admin/vouchers";
+    }
+
+    // ================= QUẢN LÝ NHẬP KHO SÁCH (INVENTORY) =================
+
+    @GetMapping("/inventory")
+    public String inventoryPage(@RequestParam(value = "variantId", required = false) Long preselectedVariantId,
+                                HttpSession session,
+                                Model model) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        List<BookVariant> allVariants = bookVariantRepository.findAll().stream()
+                .sorted((a, b) -> Integer.compare(
+                        a.getStockQuantity() != null ? a.getStockQuantity() : 0,
+                        b.getStockQuantity() != null ? b.getStockQuantity() : 0))
+                .toList();
+
+        model.addAttribute("variants", allVariants);
+        model.addAttribute("receipts", inventoryService.getAllReceipts());
+        model.addAttribute("preselectedVariantId", preselectedVariantId);
+        return "admin/inventory";
+    }
+
+    @PostMapping("/inventory/import")
+    public String createInventoryReceipt(@RequestParam("variantId") Long variantId,
+                                         @RequestParam("quantityAdded") Integer quantityAdded,
+                                         @RequestParam(value = "importPrice", required = false) Double importPrice,
+                                         @RequestParam(value = "supplierName", required = false) String supplierName,
+                                         @RequestParam(value = "note", required = false) String note,
+                                         HttpSession session,
+                                         RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        try {
+            User admin = (User) session.getAttribute("ADMIN_USER");
+            StockReceipt receipt = inventoryService.importStock(
+                    variantId, quantityAdded, importPrice, supplierName, note,
+                    admin != null ? admin.getUsername() : "admin"
+            );
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã lập phiếu nhập kho " + receipt.getReceiptCode() + " (+ " + quantityAdded + " cuốn cho " + receipt.getBookTitle() + ")!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi nhập kho: " + e.getMessage());
+        }
+        return "redirect:/admin/inventory";
     }
 
     // ================= QUẢN LÝ THỂ LOẠI =================

@@ -65,27 +65,36 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Mã đơn</th>
-                                <th>Khách hàng &amp; SĐT</th>
-                                <th>Địa chỉ giao hàng</th>
+                                <th>Mã đơn &amp; PTTT</th>
+                                <th>Khách hàng</th>
+                                <th>Thanh toán</th>
                                 <th>Tổng tiền</th>
                                 <th>Thời gian</th>
-                                <th>Trạng thái hiện tại</th>
-                                <th style="text-align: right;">Cập nhật trạng thái</th>
+                                <th>Tiến độ đơn</th>
+                                <th style="text-align: right;">Xử lý &amp; Hóa đơn</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="order : ${orders}">
                                 <td>
-                                    <strong style="color: #0f172a; font-family: monospace;" th:text="${order.orderCode}">ORD-123</strong>
-                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted);" th:text="${order.paymentMethod}">COD</div>
+                                    <a th:href="@{/admin/orders/{id}(id=${order.id})}"
+                                       style="color: #2563eb; font-weight: 700; font-family: monospace; text-decoration: none;"
+                                       th:text="${order.orderCode}">ORD-123</a>
+                                    <div style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 2px;"
+                                         th:text="${order.paymentMethodDisplay}">COD</div>
+                                    <span th:if="${order.voucherCode != null}"
+                                          style="display: inline-block; margin-top: 3px; font-size: 0.68rem; background: #dcfce7; color: #166534; padding: 1px 6px; border-radius: 4px; font-weight: 600;"
+                                          th:text="'Mã: ' + ${order.voucherCode}">Mã: SACHMOI15</span>
                                 </td>
                                 <td>
                                     <div style="font-weight: 600; color: #0f172a;" th:text="${order.customerName}">Nguyễn Văn A</div>
                                     <div style="font-size: 0.78rem; color: var(--admin-text-muted);" th:text="${order.customerPhone}">0912345678</div>
+                                    <div style="font-size: 0.75rem; color: #64748b; max-width: 210px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                         th:text="${order.shippingAddress}">Địa chỉ</div>
                                 </td>
                                 <td>
-                                    <div style="font-size: 0.82rem; max-width: 240px; line-height: 1.4; color: #334155;" th:text="${order.shippingAddress}">Hà Nội</div>
+                                    <span th:class="'admin-status-badge ' + ${order.paymentStatus.badgeClass}"
+                                          th:text="${order.paymentStatus.displayName}">Chưa thanh toán</span>
                                 </td>
                                 <td>
                                     <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
@@ -96,18 +105,20 @@
                                     <span th:class="'admin-status-badge ' + ${order.orderStatus.badgeClass}" th:text="${order.orderStatus.displayName}">Chờ xử lý</span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="POST" style="display: inline-flex; align-items: center; gap: 6px;">
-                                        <select name="status" style="padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); background: #ffffff;">
-                                            <option th:each="st : ${statuses}"
-                                                    th:value="${st.name()}"
-                                                    th:text="${st.displayName}"
-                                                    th:selected="${order.orderStatus == st}">
-                                            </option>
-                                        </select>
-                                        <button type="submit" class="admin-btn admin-btn-secondary admin-btn-sm">
-                                            Cập nhật
-                                        </button>
-                                    </form>
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                                        <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="POST" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <select name="status" style="padding: 5px 8px; font-size: 0.76rem; border: 1px solid var(--admin-border); border-radius: var(--radius-xs); background: #ffffff;">
+                                                <option th:each="st : ${statuses}"
+                                                        th:value="${st.name()}"
+                                                        th:text="${st.displayName}"
+                                                        th:selected="${order.orderStatus == st}">
+                                                </option>
+                                            </select>
+                                            <button type="submit" class="admin-btn admin-btn-secondary admin-btn-sm">Lưu</button>
+                                        </form>
+                                        <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="admin-btn admin-btn-primary admin-btn-sm">Chi tiết</a>
+                                        <a th:href="@{/admin/orders/{id}/invoice(id=${order.id})}" target="_blank" class="admin-btn admin-btn-secondary admin-btn-sm" title="In hóa đơn">In HĐ</a>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

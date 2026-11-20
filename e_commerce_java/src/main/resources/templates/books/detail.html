@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${book.title} + ' - BookStore Nhà Sách'">Chi tiết tác phẩm</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+    <link rel="stylesheet" th:href="@{/css/style.css(v=10)}">
 </head>
 <body>
 
@@ -28,9 +28,59 @@
 
         <!-- Product Detail Layout -->
         <div class="detail-layout">
-            <!-- Left Column: Book Cover & Assurances -->
+            <!-- Left Column: Book Cover, Đặc điểm nổi bật + Nút Tóm tắt AI kiểu Tiki & Assurances -->
             <div class="detail-cover-col">
                 <img th:src="${book.imageUrl}" th:alt="${book.title}" class="detail-cover-img" id="productCoverImg">
+
+                <!-- KHỐI ĐẶC ĐIỂM NỔI BẬT & NÚT MỞ TRỢ LÝ AI (GIỐNG TIKI) -->
+                <div class="tiki-highlights-card">
+                    <div class="tiki-highlights-body">
+                        <div class="tiki-highlights-title">Đặc điểm nổi bật</div>
+                        <ul class="tiki-highlights-list">
+                            <li>
+                                <svg class="tiki-check-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                <span th:text="'Ấn phẩm chọn lọc của tác giả ' + ${book.author} + (${book.category != null} ? (' thuộc chủ đề ' + ${book.category.name}) : '') + '.'">
+                                    Ấn phẩm tiêu biểu
+                                </span>
+                            </li>
+                            <li>
+                                <svg class="tiki-check-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                <span th:text="'Cung cấp ' + ${book.variants.size()} + ' phiên bản ấn phẩm chính hãng, cập nhật giá và tồn kho trực tiếp.'">
+                                    Đa dạng phiên bản bìa
+                                </span>
+                            </li>
+                            <li>
+                                <svg class="tiki-check-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                <span>Hỗ trợ Trợ lý AI tóm tắt nhanh nội dung cốt lõi và giải đáp câu hỏi trực tiếp.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Nút Trigger mở Khung Chat Trợ Lý AI đúng kiểu Tiki -->
+                    <button type="button" class="tiki-ai-trigger-row" id="btnOpenAiSummary" onclick="openAiAndSummarize()">
+                        <span class="tiki-ai-trigger-left">
+                            <span class="tiki-bot-avatar">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                    <circle cx="12" cy="5" r="2"></circle>
+                                    <path d="M12 7v4"></path>
+                                    <line x1="8" y1="16" x2="8" y2="16"></line>
+                                    <line x1="16" y1="16" x2="16" y2="16"></line>
+                                </svg>
+                            </span>
+                            <span>Xem thêm <strong>Tóm tắt nội dung sách</strong></span>
+                        </span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" style="width: 16px; height: 16px; flex-shrink: 0;">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
 
                 <div class="detail-assurances">
                     <div class="detail-assurance-item">
@@ -77,7 +127,6 @@
                         <span class="variant-selected-name" id="selectedVariantName" th:text="${defaultVariant.variantName}">Bìa mềm</span>
                     </div>
 
-                    <!-- Variant Selection Pills -->
                     <div class="variant-pills-grid">
                         <button type="button"
                                 th:each="v : ${book.variants}"
@@ -115,8 +164,8 @@
                 <div class="detail-sku-strip">
                     <span>Mã định danh SKU: <code class="detail-sku-code" id="displaySku" th:text="${defaultVariant.sku}">SKU-01</code></span>
                     <span>&bull;</span>
-                    <span>Trạng thái: 
-                        <strong id="displayStockStatus" 
+                    <span>Trạng thái:
+                        <strong id="displayStockStatus"
                                 th:style="${defaultVariant.inStock} ? 'color: var(--forest);' : 'color: var(--crimson);'"
                                 th:text="${defaultVariant.inStock} ? ('Còn hàng (' + ${defaultVariant.stockQuantity} + ' cuốn)') : 'Tạm hết phiên bản này'">
                             Còn hàng
@@ -130,15 +179,13 @@
                     <input type="hidden" name="variantId" id="inputVariantId" th:value="${defaultVariant.id}">
 
                     <div class="detail-actions-row">
-                        <!-- Quantity Picker -->
                         <div class="qty-stepper">
                             <button type="button" onclick="adjustQty(-1)" aria-label="Giảm số lượng">&minus;</button>
-                            <input type="number" id="inputQuantity" name="quantity" value="1" min="1" 
+                            <input type="number" id="inputQuantity" name="quantity" value="1" min="1"
                                    th:max="${defaultVariant.stockQuantity}" readonly>
                             <button type="button" onclick="adjustQty(1)" aria-label="Tăng số lượng">&plus;</button>
                         </div>
 
-                        <!-- Submit Button -->
                         <div style="flex: 1;">
                             <button type="submit" class="btn btn-primary btn-block" style="height: 48px;" id="btnAddToCart"
                                     th:disabled="${!defaultVariant.inStock}">
@@ -153,22 +200,168 @@
                     </div>
                 </form>
 
-                <!-- DESCRIPTION -->
+                <!-- DESCRIPTION & SAMPLE PDF PREVIEW -->
                 <div class="detail-description-section">
-                    <h3>Giới Thiệu Nội Dung Tác Phẩm</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                        <h3 style="margin-bottom: 0;">Giới Thiệu Nội Dung Tác Phẩm</h3>
+                        <a th:if="${book.samplePdfUrl != null && !book.samplePdfUrl.trim().isEmpty()}"
+                           th:href="${book.samplePdfUrl}" target="_blank"
+                           class="btn btn-secondary btn-sm"
+                           style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span>Mở Bản Đọc Thử Gốc (PDF) &nearr;</span>
+                        </a>
+                    </div>
+
                     <div class="detail-description-text" th:text="${book.description}">
                         Mô tả chi tiết cuốn sách...
                     </div>
+
+                    <details class="excerpt-preview-box"
+                             th:if="${book.samplePdfUrl != null && #strings.endsWith(#strings.toLowerCase(book.samplePdfUrl), '.pdf')}">
+                        <summary class="excerpt-preview-summary">Xem trực tiếp trang PDF đọc thử ngay trên web</summary>
+                        <div style="padding: 12px; border-top: 1px solid var(--paper-border); background: #fff;">
+                            <iframe th:src="${book.samplePdfUrl}" style="width: 100%; height: 520px; border: 1px solid var(--paper-border);" title="Bản đọc thử PDF"></iframe>
+                        </div>
+                    </details>
+
+                    <details class="excerpt-preview-box" th:if="${book.sampleExcerpt != null && !book.sampleExcerpt.trim().isEmpty()}">
+                        <summary class="excerpt-preview-summary">Đọc trích đoạn văn bản tiêu biểu / Mục lục tham khảo</summary>
+                        <div class="excerpt-preview-content" style="white-space: pre-line;" th:text="${book.sampleExcerpt}">
+                            Trích đoạn mẫu...
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- ================= NÚT NỔI MỞ TRỢ LÝ AI (KHI KHUNG CHAT ĐANG ĐÓNG) ================= -->
+    <button type="button" class="ai-floating-launcher" id="aiFloatingLauncher" onclick="toggleAiDrawer(true)">
+        <span class="tiki-bot-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4"></path>
+            </svg>
+        </span>
+        <span>Trợ lý AI</span>
+    </button>
+
+    <!-- ================= CỬA SỔ CHAT "TRỢ LÝ AI" KIỂU TIKI ================= -->
+    <aside class="ai-chat-drawer" id="aiChatDrawer"
+           th:data-book-id="${book.id}"
+           th:data-book-title="${book.title}"
+           th:data-book-image="${book.imageUrl}"
+           th:data-default-variant-id="${defaultVariant.id}"
+           th:data-default-variant-name="${defaultVariant.variantName}"
+           th:data-default-price="${defaultVariant.price}"
+           th:data-in-stock="${defaultVariant.inStock}">
+
+        <!-- Top Header -->
+        <div class="ai-drawer-topbar">
+            <div class="ai-drawer-brand">
+                <span class="tiki-bot-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path d="M12 7v4"></path>
+                    </svg>
+                </span>
+                <span class="ai-drawer-brand-title">Trợ lý AI</span>
+            </div>
+
+            <div class="ai-drawer-controls">
+                <button type="button" class="ai-icon-btn" onclick="clearAiConversation()" title="Xóa lịch sử trò chuyện">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                    </svg>
+                </button>
+                <button type="button" class="ai-icon-btn" onclick="toggleExpandAiDrawer()" title="Mở rộng / Thu gọn khung chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <polyline points="9 21 3 21 3 15"></polyline>
+                        <line x1="21" y1="3" x2="14" y2="10"></line>
+                        <line x1="3" y1="21" x2="10" y2="14"></line>
+                    </svg>
+                </button>
+                <button type="button" class="ai-icon-btn" onclick="toggleAiDrawer(false)" title="Đóng cửa sổ">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Vùng hiển thị tin nhắn hội thoại -->
+        <div class="ai-messages-viewport" id="aiMessagesViewport">
+            <!-- Tin nhắn chào mừng mặc định -->
+            <div class="ai-bot-row" id="aiWelcomeGreeting">
+                <span class="tiki-bot-avatar" style="margin-top: 2px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path d="M12 7v4"></path>
+                    </svg>
+                </span>
+                <div class="ai-bot-card-wrap">
+                    <div class="ai-bot-sender-name">Trợ lý AI</div>
+                    <div class="ai-bot-bubble">
+                        Xin chào! Mình là <strong>Trợ lý AI</strong> của BookStore. Bạn muốn mình <strong>tóm tắt nhanh nội dung</strong> cuốn <em th:text="${book.title}">sách</em>, tư vấn chọn phiên bản bìa hay giải đáp thắc mắc nào trước khi đặt mua?
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dải nút gợi ý nhanh (Quick Chips giống Tiki) -->
+        <div class="ai-chips-bar" id="aiChipsBar">
+            <button type="button" class="ai-prompt-chip" onclick="triggerBookSummaryInChat(false)">
+                <span>&#128218;</span>
+                <span>Tóm tắt nội dung sách</span>
+            </button>
+            <button type="button" class="ai-prompt-chip" onclick="sendQuickPrompt('Cuốn sách này phù hợp nhất với đối tượng độc giả nào?')">
+                <span>&#127919;</span>
+                <span>Ai nên đọc cuốn này?</span>
+            </button>
+            <button type="button" class="ai-prompt-chip" onclick="sendQuickPrompt('Tư vấn giúp mình nên chọn phiên bản bìa nào và giá hiện tại ra sao?')">
+                <span>&#128214;</span>
+                <span>Tư vấn chọn bản bìa</span>
+            </button>
+            <button type="button" class="ai-prompt-chip" onclick="sendQuickPrompt('Gợi ý cho mình vài cuốn sách tương tự đang còn hàng tại shop')">
+                <span>&#128161;</span>
+                <span>Gợi ý sách tương tự</span>
+            </button>
+        </div>
+
+        <!-- Thanh nhập nội dung chat -->
+        <div class="ai-composer-area">
+            <form class="ai-composer-form" onsubmit="handleAiChatSubmit(event)">
+                <input type="text" id="aiChatInput" class="ai-composer-input"
+                       placeholder="Nhập nội dung chat..." autocomplete="off">
+                <button type="submit" id="aiChatSendBtn" class="ai-composer-send" aria-label="Gửi tin nhắn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+            <div class="ai-disclaimer-note">Tích hợp trí tuệ nhân tạo, thông tin mang tính tham khảo</div>
+        </div>
+    </aside>
+
     <!-- Footer Fragment -->
     <div th:replace="~{layout/footer :: footer}"></div>
 
-    <!-- JAVASCRIPT XỬ LÝ CHỌN BIẾN THỂ DYNAMIC -->
+    <!-- JAVASCRIPT XỬ LÝ CHỌN BIẾN THỂ & CỬA SỔ CHAT TRỢ LÝ AI KIỂU TIKI -->
     <script>
+        // ====== 1. Xử lý chọn biến thể sách trên trang chính ======
         function selectVariant(button) {
             document.querySelectorAll('.variant-pill-btn').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
@@ -235,6 +428,15 @@
             }
 
             document.getElementById('inputVariantId').value = variantId;
+
+            // Đồng bộ biến thể đang chọn vào dataset của khung chat AI
+            const drawer = document.getElementById('aiChatDrawer');
+            if (drawer) {
+                drawer.dataset.defaultVariantId = variantId;
+                drawer.dataset.defaultVariantName = name;
+                drawer.dataset.defaultPrice = price;
+                drawer.dataset.inStock = stock > 0 ? 'true' : 'false';
+            }
         }
 
         function adjustQty(amount) {
@@ -245,6 +447,419 @@
             if (newVal >= 1 && newVal <= max) {
                 input.value = newVal;
             }
+        }
+
+        // ====== 2. Trợ lý AI Chat Drawer (Phong cách Tiki) ======
+        const aiConversationHistory = [];
+        let summaryAlreadyLoadedInChat = false;
+        let aiBusy = false;
+
+        function getDrawerMeta() {
+            const drawer = document.getElementById('aiChatDrawer');
+            return {
+                bookId: drawer.dataset.bookId,
+                bookTitle: drawer.dataset.bookTitle,
+                bookImage: drawer.dataset.bookImage,
+                variantId: drawer.dataset.defaultVariantId,
+                variantName: drawer.dataset.defaultVariantName,
+                price: parseFloat(drawer.dataset.defaultPrice || '0'),
+                inStock: drawer.dataset.inStock === 'true'
+            };
+        }
+
+        function toggleAiDrawer(open) {
+            const drawer = document.getElementById('aiChatDrawer');
+            const launcher = document.getElementById('aiFloatingLauncher');
+            if (open) {
+                drawer.classList.add('open');
+                launcher.style.display = 'none';
+                setTimeout(() => {
+                    const input = document.getElementById('aiChatInput');
+                    if (input) input.focus();
+                }, 150);
+            } else {
+                drawer.classList.remove('open');
+                launcher.style.display = 'inline-flex';
+            }
+        }
+
+        function toggleExpandAiDrawer() {
+            document.getElementById('aiChatDrawer').classList.toggle('expanded');
+        }
+
+        function clearAiConversation() {
+            aiConversationHistory.length = 0;
+            summaryAlreadyLoadedInChat = false;
+            const viewport = document.getElementById('aiMessagesViewport');
+            const meta = getDrawerMeta();
+            viewport.innerHTML = '';
+            const row = createBotRowElement();
+            row.querySelector('.ai-bot-bubble').innerHTML =
+                'Đã làm mới cuộc trò chuyện! Bạn muốn mình <strong>tóm tắt nội dung</strong> cuốn <em>'
+                + escapeHtml(meta.bookTitle) + '</em> hay giải đáp câu hỏi nào khác?';
+            viewport.appendChild(row);
+        }
+
+        // Khi khách bấm "Xem thêm Tóm tắt nội dung sách >" ở dưới ảnh bìa
+        function openAiAndSummarize() {
+            toggleAiDrawer(true);
+            if (!summaryAlreadyLoadedInChat) {
+                triggerBookSummaryInChat(false);
+            }
+        }
+
+        function scrollChatToBottom() {
+            const viewport = document.getElementById('aiMessagesViewport');
+            viewport.scrollTop = viewport.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.innerText = str;
+            return div.innerHTML;
+        }
+
+        function appendUserBubble(text, withBookThumb) {
+            const viewport = document.getElementById('aiMessagesViewport');
+            const meta = getDrawerMeta();
+            const row = document.createElement('div');
+            row.className = 'ai-user-row';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'ai-user-bubble';
+
+            const span = document.createElement('span');
+            span.innerText = text;
+            bubble.appendChild(span);
+
+            if (withBookThumb && meta.bookImage) {
+                const img = document.createElement('img');
+                img.src = meta.bookImage;
+                img.alt = meta.bookTitle;
+                img.className = 'ai-user-bubble-thumb';
+                bubble.appendChild(img);
+            }
+
+            row.appendChild(bubble);
+            viewport.appendChild(row);
+            scrollChatToBottom();
+        }
+
+        function createBotRowElement() {
+            const row = document.createElement('div');
+            row.className = 'ai-bot-row';
+            row.innerHTML = `
+                <span class="tiki-bot-avatar" style="margin-top: 2px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path d="M12 7v4"></path>
+                    </svg>
+                </span>
+                <div class="ai-bot-card-wrap">
+                    <div class="ai-bot-sender-name">Trợ lý AI</div>
+                    <div class="ai-bot-bubble"></div>
+                </div>
+            `;
+            return row;
+        }
+
+        function appendTypingIndicator() {
+            const viewport = document.getElementById('aiMessagesViewport');
+            const row = createBotRowElement();
+            row.querySelector('.ai-bot-bubble').innerHTML =
+                '<div class="ai-typing-dots"><span></span><span></span><span></span></div>';
+            viewport.appendChild(row);
+            scrollChatToBottom();
+            return row;
+        }
+
+        function buildMiniProductCardHtml(card) {
+            const formattedPrice = new Intl.NumberFormat('vi-VN').format(card.price || 0) + ' đ';
+            const cartBtnHtml = (card.inStock && card.variantId)
+                ? `<button type="button" class="ai-mini-cart-btn" title="Thêm nhanh vào giỏ hàng"
+                           onclick="quickAddFromAiChat(${card.bookId}, ${card.variantId}, this)">
+                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                           <circle cx="9" cy="21" r="1"></circle>
+                           <circle cx="20" cy="21" r="1"></circle>
+                           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                       </svg>
+                   </button>`
+                : '';
+
+            return `
+                <div class="ai-mini-product-card">
+                    <a href="/books/${card.bookId}">
+                        <img src="${escapeHtml(card.imageUrl || '')}" alt="${escapeHtml(card.title)}" class="ai-mini-product-img">
+                    </a>
+                    <div class="ai-mini-product-info">
+                        <a href="/books/${card.bookId}" class="ai-mini-product-title">${escapeHtml(card.title)}</a>
+                        <div class="ai-mini-product-price">${formattedPrice} <span style="font-weight: 500; color: #64748b;">(${escapeHtml(card.variantName || 'Tiêu chuẩn')})</span></div>
+                    </div>
+                    ${cartBtnHtml}
+                </div>
+            `;
+        }
+
+        function buildFeedbackRowHtml(allowRefreshSummary) {
+            const refreshBtn = allowRefreshSummary
+                ? `<button type="button" class="ai-thumb-btn" onclick="triggerBookSummaryInChat(true)" title="Tạo lại bản tóm tắt mới từ OpenAI">&#8635; Tạo lại</button>`
+                : '<span></span>';
+            return `
+                <div class="ai-feedback-row">
+                    <div class="ai-feedback-btns">
+                        <button type="button" class="ai-thumb-btn" onclick="voteAiReply(this)" title="Hữu ích">&#128077;</button>
+                        <button type="button" class="ai-thumb-btn" onclick="voteAiReply(this)" title="Chưa sát ý">&#128078;</button>
+                    </div>
+                    ${refreshBtn}
+                </div>
+            `;
+        }
+
+        function voteAiReply(btn) {
+            const parent = btn.parentElement;
+            parent.querySelectorAll('.ai-thumb-btn').forEach(b => b.classList.remove('voted'));
+            btn.classList.add('voted');
+        }
+
+        async function quickAddFromAiChat(bookId, variantId, btnElem) {
+            if (!variantId || btnElem.disabled) return;
+            btnElem.disabled = true;
+            try {
+                const params = new URLSearchParams();
+                params.append('bookId', bookId);
+                params.append('variantId', variantId);
+                params.append('quantity', '1');
+
+                const res = await fetch('/cart/api/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Không thể thêm vào giỏ');
+                }
+
+                // Cập nhật số lượng trên icon Giỏ hàng ở Header
+                document.querySelectorAll('.cart-badge').forEach(b => {
+                    b.innerText = data.cartCount;
+                });
+
+                btnElem.classList.add('added');
+                btnElem.innerHTML = '&#10003;';
+                setTimeout(() => {
+                    btnElem.disabled = false;
+                }, 1200);
+            } catch (e) {
+                alert(e.message || 'Lỗi thêm giỏ hàng');
+                btnElem.disabled = false;
+            }
+        }
+
+        // Gọi API Tóm tắt sách và hiển thị theo đúng bố cục Tiki trong cửa sổ chat
+        async function triggerBookSummaryInChat(forceRefresh) {
+            if (aiBusy) return;
+            aiBusy = true;
+            const meta = getDrawerMeta();
+            const promptText = 'Tóm tắt nội dung của ' + meta.bookTitle;
+            appendUserBubble(promptText, true);
+
+            const typingRow = appendTypingIndicator();
+            setComposerDisabled(true);
+
+            try {
+                const res = await fetch('/api/books/' + meta.bookId + '/ai-summary?refresh=' + (forceRefresh ? 'true' : 'false'), {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Không thể tóm tắt sách lúc này.');
+                }
+
+                summaryAlreadyLoadedInChat = true;
+                let html = '';
+
+                if (data.hookQuestion) {
+                    html += `<div class="ai-tiki-hook">${escapeHtml(data.hookQuestion)}</div>`;
+                }
+                html += `<div class="ai-tiki-book-heading">${escapeHtml(data.bookTitle || meta.bookTitle)}</div>`;
+                if (data.shortSummary) {
+                    html += `<div class="ai-tiki-overview">${escapeHtml(data.shortSummary)}</div>`;
+                }
+
+                if (Array.isArray(data.sections) && data.sections.length > 0) {
+                    data.sections.forEach(sec => {
+                        html += `<div class="ai-tiki-section-block">`;
+                        if (sec.heading) html += `<div class="ai-tiki-sec-title">${escapeHtml(sec.heading)}</div>`;
+                        if (sec.subtitle) html += `<div class="ai-tiki-sec-sub">${escapeHtml(sec.subtitle)}</div>`;
+                        if (sec.content) html += `<div class="ai-tiki-sec-text">${escapeHtml(sec.content)}</div>`;
+                        html += `</div>`;
+                    });
+                }
+
+                if (Array.isArray(data.takeaways) && data.takeaways.length > 0) {
+                    html += `<div class="ai-tiki-subhead">Tại sao bạn nên đọc</div><ul class="ai-tiki-bullets">`;
+                    data.takeaways.forEach(item => {
+                        html += `<li>${escapeHtml(item)}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                if (data.authorBio) {
+                    html += `<div class="ai-tiki-subhead">Tác giả ${escapeHtml(data.bookAuthor || '')}</div>`;
+                    html += `<div class="ai-tiki-sec-text">${escapeHtml(data.authorBio)}</div>`;
+                }
+
+                // Gắn thẻ mua nhanh cuốn sách hiện tại ngay cuối tin nhắn AI (giống Tiki)
+                html += buildMiniProductCardHtml({
+                    bookId: meta.bookId,
+                    title: meta.bookTitle,
+                    imageUrl: meta.bookImage,
+                    variantId: meta.variantId,
+                    variantName: meta.variantName,
+                    price: meta.price,
+                    inStock: meta.inStock
+                });
+
+                typingRow.querySelector('.ai-bot-bubble').innerHTML = html;
+                typingRow.querySelector('.ai-bot-card-wrap').insertAdjacentHTML('beforeend', buildFeedbackRowHtml(true));
+
+                aiConversationHistory.push({ role: 'user', content: promptText });
+                aiConversationHistory.push({ role: 'assistant', content: (data.shortSummary || '') });
+                scrollChatToBottom();
+            } catch (err) {
+                typingRow.querySelector('.ai-bot-bubble').innerHTML =
+                    '<span style="color: #b91c1c;">' + escapeHtml(err.message || 'Đã xảy ra lỗi kết nối AI.') + '</span>';
+            } finally {
+                aiBusy = false;
+                setComposerDisabled(false);
+            }
+        }
+
+        // Định dạng Markdown nhẹ (**bold** và danh sách - ) sang HTML an toàn
+        function formatChatAnswerHtml(rawText) {
+            const safe = escapeHtml(rawText || '');
+            const formattedBold = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            const lines = formattedBold.split(/\r?\n/);
+            let html = '';
+            let inList = false;
+
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+                    if (!inList) {
+                        html += '<ul class="ai-tiki-bullets" style="margin-top: 6px;">';
+                        inList = true;
+                    }
+                    html += '<li>' + trimmed.substring(2) + '</li>';
+                } else {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    if (trimmed.length > 0) {
+                        html += '<p style="margin-bottom: 8px;">' + trimmed + '</p>';
+                    }
+                }
+            });
+            if (inList) {
+                html += '</ul>';
+            }
+            return html;
+        }
+
+        function updateDynamicChips(suggestions) {
+            if (!Array.isArray(suggestions) || suggestions.length === 0) return;
+            const chipsBar = document.getElementById('aiChipsBar');
+            let html = `
+                <button type="button" class="ai-prompt-chip" onclick="triggerBookSummaryInChat(false)">
+                    <span>&#128218;</span>
+                    <span>Tóm tắt nội dung sách</span>
+                </button>
+            `;
+            suggestions.forEach(q => {
+                const safeAttr = q.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                html += `<button type="button" class="ai-prompt-chip" onclick="sendQuickPrompt('${safeAttr}')">${escapeHtml(q)}</button>`;
+            });
+            chipsBar.innerHTML = html;
+        }
+
+        function sendQuickPrompt(questionText) {
+            toggleAiDrawer(true);
+            sendUserChatMessage(questionText);
+        }
+
+        function handleAiChatSubmit(event) {
+            event.preventDefault();
+            const input = document.getElementById('aiChatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            sendUserChatMessage(text);
+        }
+
+        async function sendUserChatMessage(messageText) {
+            if (aiBusy) return;
+            aiBusy = true;
+            const meta = getDrawerMeta();
+            appendUserBubble(messageText, false);
+
+            const typingRow = appendTypingIndicator();
+            setComposerDisabled(true);
+
+            try {
+                const res = await fetch('/api/books/' + meta.bookId + '/ai-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: messageText,
+                        history: aiConversationHistory.slice(-6)
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Không thể phản hồi lúc này.');
+                }
+
+                let html = formatChatAnswerHtml(data.answer || '');
+
+                if (Array.isArray(data.recommendedBooks) && data.recommendedBooks.length > 0) {
+                    data.recommendedBooks.forEach(card => {
+                        html += buildMiniProductCardHtml(card);
+                    });
+                }
+
+                typingRow.querySelector('.ai-bot-bubble').innerHTML = html;
+                typingRow.querySelector('.ai-bot-card-wrap').insertAdjacentHTML('beforeend', buildFeedbackRowHtml(false));
+
+                aiConversationHistory.push({ role: 'user', content: messageText });
+                aiConversationHistory.push({ role: 'assistant', content: data.answer || '' });
+
+                if (data.suggestedQuestions) {
+                    updateDynamicChips(data.suggestedQuestions);
+                }
+                scrollChatToBottom();
+            } catch (err) {
+                typingRow.querySelector('.ai-bot-bubble').innerHTML =
+                    '<span style="color: #b91c1c;">' + escapeHtml(err.message || 'Lỗi kết nối dịch vụ AI.') + '</span>';
+            } finally {
+                aiBusy = false;
+                setComposerDisabled(false);
+            }
+        }
+
+        function setComposerDisabled(disabled) {
+            const input = document.getElementById('aiChatInput');
+            const sendBtn = document.getElementById('aiChatSendBtn');
+            if (input) input.disabled = disabled;
+            if (sendBtn) sendBtn.disabled = disabled;
+            if (!disabled && input) input.focus();
         }
     </script>
 </body>
