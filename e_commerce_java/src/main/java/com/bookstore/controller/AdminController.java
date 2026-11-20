@@ -3,6 +3,7 @@ package com.bookstore.controller;
 import com.bookstore.config.WebConfig;
 import com.bookstore.dto.BookForm;
 import com.bookstore.dto.LoginForm;
+import com.bookstore.dto.UserForm;
 import com.bookstore.dto.VariantForm;
 import com.bookstore.model.*;
 import com.bookstore.repository.BookVariantRepository;
@@ -309,11 +310,20 @@ public class AdminController {
     // ================= QUẢN LÝ ĐƠN HÀNG =================
 
     @GetMapping("/orders")
-    public String listOrders(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String listOrders(@RequestParam(value = "userId", required = false) Long userId,
+                             HttpSession session,
+                             Model model,
+                             RedirectAttributes redirectAttributes) {
         if (!checkAdmin(session)) {
             return "redirect:/admin/login";
         }
-        model.addAttribute("orders", orderService.getAllOrders());
+        if (userId != null) {
+            model.addAttribute("orders", orderService.getOrdersByUser(userId));
+            model.addAttribute("filteredUser", userService.getUserById(userId).orElse(null));
+        } else {
+            model.addAttribute("orders", orderService.getAllOrders());
+            model.addAttribute("filteredUser", null);
+        }
         model.addAttribute("statuses", OrderStatus.values());
         return "admin/orders";
     }
@@ -338,12 +348,29 @@ public class AdminController {
     // ================= QUẢN LÝ THỂ LOẠI =================
 
     @GetMapping("/categories")
-    public String listCategories(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String listCategories(@RequestParam(value = "editId", required = false) Long editId,
+                                 HttpSession session,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
         if (!checkAdmin(session)) {
             return "redirect:/admin/login";
         }
         model.addAttribute("categories", categoryService.getAllCategories());
-        model.addAttribute("newCategory", new Category());
+
+        Category categoryForm = new Category();
+        boolean isEdit = false;
+        if (editId != null) {
+            Optional<Category> catOpt = categoryService.getCategoryById(editId);
+            if (catOpt.isPresent()) {
+                categoryForm = catOpt.get();
+                isEdit = true;
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy thể loại ID: " + editId);
+                return "redirect:/admin/categories";
+            }
+        }
+        model.addAttribute("newCategory", categoryForm);
+        model.addAttribute("isEdit", isEdit);
         return "admin/categories";
     }
 
@@ -355,8 +382,10 @@ public class AdminController {
             return "redirect:/admin/login";
         }
         try {
+            boolean isEdit = category.getId() != null;
             categoryService.saveCategory(category);
-            redirectAttributes.addFlashAttribute("successMessage", "Lưu thể loại thành công!");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    isEdit ? "Cập nhật thể loại thành công!" : "Thêm mới thể loại thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi lưu thể loại: " + e.getMessage());
         }
@@ -370,10 +399,145 @@ public class AdminController {
         }
         try {
             categoryService.deleteCategory(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa thể loại!");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa thể loại thành công! Các sách thuộc thể loại này đã được chuyển về Chưa phân loại.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa thể loại đang có sách liên kết!");
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xóa thể loại: " + e.getMessage());
         }
         return "redirect:/admin/categories";
+    }
+
+    // ================= QUẢN LÝ NGƯỜI DÙNG =================
+
+    @GetMapping("/users")
+    public String listUsers(@RequestParam(value = "keyword", required = false) String keyword,
+                            HttpSession session,
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập với quyền Admin!");
+            return "redirect:/admin/login";
+        }
+
+        List<User> users = (keyword != null && !keyword.trim().isEmpty())
+                ? userService.searchUsers(keyword)
+                : userService.getAllUsers();
+
+        long adminCount = users.stream().filter(User::isAdmin).count();
+        long customerCount = users.size() - adminCount;
+
+        model.addAttribute("users", users);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("adminCount", adminCount);
+        model.addAttribute("customerCount", customerCount);
+        model.addAttribute("totalUsers", users.size());
+
+        return "admin/users";
+    }
+
+    @GetMapping("/users/new")
+    public String newUserForm(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+        model.addAttribute("userForm", new UserForm());
+        model.addAttribute("roles", Role.values());
+        return "admin/user-form";
+    }
+
+    @GetMapping("/users/edit/{id}")
+    public String editUserForm(@PathVariable("id") Long id,
+                               HttpSession session,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
+
+        UserForm form = new UserForm();
+        form.setId(user.getId());
+        form.setUsername(user.getUsername());
+        form.setFullName(user.getFullName());
+        form.setEmail(user.getEmail());
+        form.setPhone(user.getPhone());
+        form.setAddress(user.getAddress());
+        form.setRole(user.getRole());
+
+        model.addAttribute("userForm", form);
+        model.addAttribute("roles", Role.values());
+        model.addAttribute("userOrders", orderService.getOrdersByUser(id));
+        return "admin/user-form";
+    }
+
+    @PostMapping("/users/save")
+    public String saveUser(@Valid @ModelAttribute("userForm") UserForm form,
+                           BindingResult bindingResult,
+                           HttpSession session,
+                           Model model,
+                           RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+
+        // Bắt buộc mật khẩu nếu tạo mới
+        if (form.getId() == null && (form.getPassword() == null || form.getPassword().trim().isEmpty())) {
+            bindingResult.rejectValue("password", "error.userForm", "Mật khẩu không được để trống khi tạo mới");
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", Role.values());
+            return "admin/user-form";
+        }
+
+        try {
+            boolean isEdit = form.getId() != null;
+            userService.saveUserFromAdmin(form);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    isEdit ? "Cập nhật tài khoản người dùng thành công!" : "Tạo mới tài khoản người dùng thành công!");
+            return "redirect:/admin/users";
+        } catch (Exception e) {
+            model.addAttribute("roles", Role.values());
+            model.addAttribute("errorMessage", e.getMessage());
+            return "admin/user-form";
+        }
+    }
+
+    @PostMapping("/users/{id}/role")
+    public String changeUserRole(@PathVariable("id") Long id,
+                                 @RequestParam("role") Role role,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+
+        User currentAdmin = (User) session.getAttribute("ADMIN_USER");
+        try {
+            userService.changeUserRole(id, role, currentAdmin.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Thay đổi vai trò người dùng thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @GetMapping("/users/delete/{id}")
+    public String deleteUser(@PathVariable("id") Long id,
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
+        if (!checkAdmin(session)) {
+            return "redirect:/admin/login";
+        }
+
+        User currentAdmin = (User) session.getAttribute("ADMIN_USER");
+        try {
+            userService.deleteUser(id, currentAdmin.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa tài khoản người dùng thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
     }
 }

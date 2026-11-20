@@ -2,6 +2,8 @@ package com.bookstore.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Thực thể Người dùng (User) - Lưu trữ thông tin tài khoản khách hàng và admin.
@@ -38,6 +40,9 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Order> orders = new ArrayList<>();
 
     public User() {
         this.createdAt = LocalDateTime.now();
@@ -129,5 +134,17 @@ public class User {
 
     public boolean isAdmin() {
         return this.role == Role.ROLE_ADMIN;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
+    public int getOrderCount() {
+        return orders != null ? orders.size() : 0;
     }
 }

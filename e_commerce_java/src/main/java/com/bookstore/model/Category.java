@@ -22,7 +22,7 @@ public class Category {
     @Column(length = 255)
     private String description;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private List<Book> books = new ArrayList<>();
 
     public Category() {
