@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Người Dùng - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar('users')}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar('Danh Sách Người Dùng', 'Tài khoản & Hệ thống')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Page Header -->
+            <div class="admin-card-header" style="background: transparent; border: none; padding: 0 0 24px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Tài Khoản Người Dùng</h1>
+                    <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                        Quản lý hồ sơ khách hàng, phân quyền quản trị viên và theo dõi hoạt động tài khoản hệ thống.
+                    </p>
+                </div>
+                <a href="/admin/users/new" class="admin-btn admin-btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    <span>Thêm Tài Khoản Mới</span>
+                </a>
+            </div>
+
+            <!-- STATS CARDS -->
+            <div class="admin-stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+                <!-- Tổng người dùng -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Tổng Số Tài Khoản</div>
+                        <div class="value" th:text="${totalUsers}">0</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-accent); font-weight: 600; margin-top: 6px;">Hệ thống BookStore</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Quản trị viên -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Quản Trị Viên (Admin)</div>
+                        <div class="value" style="color: #4338ca;" th:text="${adminCount}">0</div>
+                        <div style="font-size: 0.75rem; color: #4338ca; font-weight: 600; margin-top: 6px;">Quyền quản lý hệ thống</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Khách hàng -->
+                <div class="admin-stat-card">
+                    <div class="admin-stat-info">
+                        <div class="title">Khách Hàng (Customer)</div>
+                        <div class="value" style="color: #166534;" th:text="${customerCount}">0</div>
+                        <div style="font-size: 0.75rem; color: #166534; font-weight: 600; margin-top: 6px;">Người mua hàng trực tuyến</div>
+                    </div>
+                    <div class="admin-stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="10" r="3"></circle>
+                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE CARD & SEARCH -->
+            <div class="admin-card">
+                <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <h3 class="admin-card-title">
+                        Danh Sách Tài Khoản (<span th:text="${users.size()}">0</span>)
+                    </h3>
+
+                    <!-- Thanh tìm kiếm từ khóa -->
+                    <form action="/admin/users" method="GET" style="display: flex; gap: 8px;">
+                        <input type="text" name="keyword" th:value="${keyword}" 
+                               placeholder="Tìm theo tên, username, email, SĐT..." 
+                               style="width: 280px; padding: 7px 12px; font-size: 0.85rem; border: 1px solid var(--admin-border); border-radius: var(--radius-sm);">
+                        <button type="submit" class="admin-btn admin-btn-secondary admin-btn-sm">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <span>Tìm</span>
+                        </button>
+                        <a th:if="${keyword != null && !keyword.isEmpty()}" href="/admin/users" class="admin-btn admin-btn-secondary admin-btn-sm" title="Xóa tìm kiếm">
+                            Đặt lại
+                        </a>
+                    </form>
+                </div>
+
+                <div th:if="${users.isEmpty()}" style="padding: 48px; text-align: center; color: var(--admin-text-muted);">
+                    <div style="width: 44px; height: 44px; margin: 0 auto 12px; color: var(--admin-text-light);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    Không tìm thấy tài khoản người dùng nào phù hợp.
+                </div>
+
+                <div th:unless="${users.isEmpty()}" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ID</th>
+                                <th>Người dùng</th>
+                                <th>Liên hệ</th>
+                                <th>Địa chỉ</th>
+                                <th style="text-align: center;">Vai trò</th>
+                                <th style="text-align: center; width: 110px;">Số đơn hàng</th>
+                                <th>Ngày tạo</th>
+                                <th style="text-align: right; width: 140px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${users}">
+                                <td style="font-weight: 600; color: var(--admin-text-muted);" th:text="${u.id}">1</td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 36px; height: 36px; border-radius: var(--radius-full); background: #e2e8f0; color: #334155; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;"
+                                             th:text="${#strings.substring(u.fullName != null && !u.fullName.isEmpty() ? u.fullName : u.username, 0, 1).toUpperCase()}">
+                                            U
+                                        </div>
+                                        <div>
+                                            <a th:href="@{/admin/users/edit/{id}(id=${u.id})}" style="font-weight: 600; color: #0f172a; text-decoration: none;" th:text="${u.fullName}">
+                                                Nguyễn Văn A
+                                            </a>
+                                            <div style="font-size: 0.78rem; color: var(--admin-text-muted); font-family: monospace;" th:text="'@' + ${u.username}">
+                                                @nguyenvana
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.85rem; color: #0f172a;" th:text="${u.email}">email@example.com</div>
+                                    <div style="font-size: 0.78rem; color: var(--admin-text-muted);" th:text="${u.phone != null && !u.phone.isEmpty() ? u.phone : 'Chưa cập nhật SĐT'}">0912345678</div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.82rem; max-width: 220px; line-height: 1.4; color: #334155;" 
+                                         th:text="${u.address != null && !u.address.isEmpty() ? u.address : '-'}">
+                                        Hà Nội
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="POST" style="display: inline-flex; align-items: center;">
+                                        <select name="role" onchange="this.form.submit()" 
+                                                th:style="${u.isAdmin()} ? 'background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; padding: 4px 8px; border-radius: var(--radius-xs); font-size: 0.75rem; font-weight: 600; cursor: pointer;' : 'background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 4px 8px; border-radius: var(--radius-xs); font-size: 0.75rem; font-weight: 600; cursor: pointer;'">
+                                            <option value="ROLE_CUSTOMER" th:selected="${u.role.name() == 'ROLE_CUSTOMER'}">Khách hàng</option>
+                                            <option value="ROLE_ADMIN" th:selected="${u.role.name() == 'ROLE_ADMIN'}">Quản trị viên</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td style="text-align: center;">
+                                    <a th:if="${u.orders != null && !u.orders.isEmpty()}" 
+                                       th:href="@{/admin/orders(userId=${u.id})}" 
+                                       style="text-decoration: none; display: inline-block;"
+                                       title="Bấm để xem danh sách đơn hàng của khách hàng này">
+                                        <span style="font-size: 0.75rem; background: #eff6ff; color: #1d4ed8; padding: 3px 10px; border-radius: var(--radius-xs); font-weight: 600; border: 1px solid #bfdbfe; transition: var(--transition);" 
+                                              th:text="${u.orders.size()} + ' đơn'">1 đơn</span>
+                                    </a>
+                                    <span th:if="${u.orders == null || u.orders.isEmpty()}" 
+                                          style="font-size: 0.75rem; background: #f1f5f9; padding: 3px 8px; border-radius: var(--radius-xs); font-weight: 600; color: #94a3b8;">
+                                        0 đơn
+                                    </span>
+                                </td>
+                                <td style="font-size: 0.8rem; color: var(--admin-text-muted);" 
+                                    th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">
+                                    01/01/2026
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                        <a th:href="@{/admin/users/edit/{id}(id=${u.id})}" 
+                                           class="admin-btn admin-btn-secondary admin-btn-sm" title="Sửa thông tin tài khoản">
+                                            Sửa
+                                        </a>
+                                        <!-- Không cho xóa chính mình -->
+                                        <a th:if="${adminUser == null || adminUser.id != u.id}"
+                                           th:href="@{/admin/users/delete/{id}(id=${u.id})}" 
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?')" 
+                                           class="admin-btn admin-btn-danger admin-btn-sm" title="Xóa tài khoản">
+                                            Xóa
+                                        </a>
+                                        <span th:if="${adminUser != null && adminUser.id == u.id}" 
+                                              style="font-size: 0.72rem; color: var(--admin-text-muted); padding: 4px 6px;">
+                                            (Bạn)
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
+

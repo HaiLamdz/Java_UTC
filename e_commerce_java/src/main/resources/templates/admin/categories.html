@@ -21,21 +21,34 @@
             <div th:replace="~{admin/layout :: alerts}"></div>
 
             <!-- Page Title -->
-            <div style="margin-bottom: 24px;">
-                <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Thể Loại Sách</h1>
-                <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
-                    Thiết lập các danh mục thể loại để phân loại và sắp xếp tác phẩm trên gian hàng.
-                </p>
+            <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Thể Loại Sách</h1>
+                    <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                        Thiết lập và quản lý các danh mục thể loại để phân loại và sắp xếp tác phẩm trên gian hàng.
+                    </p>
+                </div>
+                <div th:if="${isEdit}">
+                    <a href="/admin/categories" class="admin-btn admin-btn-secondary admin-btn-sm">
+                        &larr; Tạo mới thể loại
+                    </a>
+                </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 360px 1fr; gap: 28px;">
-                <!-- FORM THÊM MỚI -->
+                <!-- FORM THÊM MỚI / CHỈNH SỬA -->
                 <div class="admin-card" style="height: fit-content;">
-                    <div class="admin-card-header">
-                        <h3 class="admin-card-title">Thêm Thể Loại Mới</h3>
+                    <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="admin-card-title" th:text="${isEdit ? 'Chỉnh Sửa Thể Loại' : 'Thêm Thể Loại Mới'}">Thêm Thể Loại Mới</h3>
+                        <span th:if="${isEdit}" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                            Đang sửa ID #<span th:text="${newCategory.id}"></span>
+                        </span>
                     </div>
                     <div style="padding: 22px;">
                         <form action="/admin/categories/save" method="POST" th:object="${newCategory}">
+                            <!-- ID ẩn để phân biệt Thêm mới hoặc Cập nhật -->
+                            <input type="hidden" th:field="*{id}">
+
                             <div style="margin-bottom: 16px;">
                                 <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
                                     Tên thể loại <span style="color:#b91c1c">*</span>
@@ -50,46 +63,70 @@
                                 <textarea th:field="*{description}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.88rem;" rows="3" placeholder="Mô tả tóm tắt..."></textarea>
                             </div>
 
-                            <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
-                                Lưu Thể Loại
-                            </button>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="submit" class="admin-btn admin-btn-primary" style="flex: 1; justify-content: center; padding: 10px;">
+                                    <span th:text="${isEdit ? 'Lưu Thay Đổi' : 'Lưu Thể Loại'}">Lưu Thể Loại</span>
+                                </button>
+                                <a th:if="${isEdit}" href="/admin/categories" class="admin-btn admin-btn-secondary" style="padding: 10px 16px; justify-content: center;">
+                                    Hủy
+                                </a>
+                            </div>
                         </form>
                     </div>
                 </div>
 
                 <!-- DANH SÁCH THỂ LOẠI -->
                 <div class="admin-card">
-                    <div class="admin-card-header">
-                        <h3 class="admin-card-title">Danh Sách Thể Loại Hiện Có</h3>
+                    <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="admin-card-title">
+                            Danh Sách Thể Loại Hiện Có (<span th:text="${categories.size()}">0</span>)
+                        </h3>
+                        <!-- Ô tìm kiếm nhanh client-side -->
+                        <div style="width: 220px;">
+                            <input type="text" id="catSearchInput" onkeyup="filterCategories()" placeholder="Tìm nhanh thể loại..." 
+                                   style="width: 100%; padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--admin-border); border-radius: var(--radius-xs);">
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
-                        <table class="admin-table">
+                        <table class="admin-table" id="categoriesTable">
                             <thead>
                                 <tr>
                                     <th style="width: 50px;">ID</th>
                                     <th>Tên thể loại</th>
                                     <th>Mô tả</th>
                                     <th style="text-align: center; width: 110px;">Số đầu sách</th>
-                                    <th style="text-align: right; width: 80px;">Xóa</th>
+                                    <th style="text-align: right; width: 130px;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="cat : ${categories}">
+                                <tr th:if="${categories.isEmpty()}">
+                                    <td colspan="5" style="text-align: center; color: var(--admin-text-muted); padding: 32px;">
+                                        Chưa có thể loại nào trong hệ thống.
+                                    </td>
+                                </tr>
+                                <tr th:each="cat : ${categories}" th:classappend="${isEdit and newCategory.id == cat.id} ? 'selected-row' : ''"
+                                    th:style="${isEdit and newCategory.id == cat.id} ? 'background: #eff6ff;' : ''">
                                     <td style="font-weight: 600; color: var(--admin-text-muted);" th:text="${cat.id}">1</td>
                                     <td>
-                                        <strong style="color: #0f172a;" th:text="${cat.name}">Tên thể loại</strong>
+                                        <strong style="color: #0f172a;" class="cat-name" th:text="${cat.name}">Tên thể loại</strong>
                                     </td>
-                                    <td style="font-size: 0.82rem; color: var(--admin-text-muted);" th:text="${cat.description != null ? cat.description : '-'}">Mô tả</td>
+                                    <td style="font-size: 0.82rem; color: var(--admin-text-muted);" th:text="${cat.description != null && !cat.description.isEmpty() ? cat.description : '-'}">Mô tả</td>
                                     <td style="text-align: center;">
                                         <span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #334155;" 
                                               th:text="${cat.books != null ? cat.books.size() : 0} + ' cuốn'">0 cuốn</span>
                                     </td>
                                     <td style="text-align: right;">
-                                        <a th:href="@{/admin/categories/delete/{id}(id=${cat.id})}" 
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa thể loại này? Các sách thuộc thể loại sẽ chuyển về Chưa phân loại.')"
-                                           class="admin-btn admin-btn-danger admin-btn-sm">
-                                            Xóa
-                                        </a>
+                                        <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                            <a th:href="@{/admin/categories(editId=${cat.id})}" 
+                                               class="admin-btn admin-btn-secondary admin-btn-sm" title="Chỉnh sửa thể loại">
+                                                Sửa
+                                            </a>
+                                            <a th:href="@{/admin/categories/delete/{id}(id=${cat.id})}" 
+                                               onclick="return confirm('Bạn có chắc chắn muốn xóa thể loại này? Các sách thuộc thể loại sẽ được chuyển về Chưa phân loại an toàn.')"
+                                               class="admin-btn admin-btn-danger admin-btn-sm" title="Xóa thể loại">
+                                                Xóa
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -100,5 +137,25 @@
         </main>
     </div>
 
+    <script>
+        function filterCategories() {
+            const input = document.getElementById("catSearchInput");
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById("categoriesTable");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                const nameCell = tr[i].querySelector(".cat-name");
+                if (nameCell) {
+                    const txtValue = nameCell.textContent || nameCell.innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${userForm.id == null ? 'Thêm Người Dùng Mới' : 'Chỉnh Sửa Người Dùng'} + ' - Admin BookStore'">Quản Lý Người Dùng</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+
+    <!-- Dedicated Admin Sidebar -->
+    <div th:replace="~{admin/layout :: sidebar('users')}"></div>
+
+    <!-- Admin Main Wrapper -->
+    <div class="admin-main-wrapper">
+        <!-- Dedicated Admin Topbar -->
+        <div th:replace="~{admin/layout :: topbar(${userForm.id == null ? 'Thêm Tài Khoản' : 'Sửa Tài Khoản'}, 'Tài khoản & Hệ thống')}"></div>
+
+        <main class="admin-content">
+            <!-- Alerts -->
+            <div th:replace="~{admin/layout :: alerts}"></div>
+
+            <!-- Page Title -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;" 
+                        th:text="${userForm.id == null ? 'Thêm Tài Khoản Người Dùng Mới' : 'Chỉnh Sửa Thông Tin Người Dùng'}">
+                        Thêm Tài Khoản Mới
+                    </h1>
+                    <p style="font-size: 0.88rem; color: var(--admin-text-muted); margin-top: 4px;">
+                        Thiết lập thông tin đăng nhập, hồ sơ cá nhân và quyền hạn truy cập của người dùng trên hệ thống.
+                    </p>
+                </div>
+                <a href="/admin/users" class="admin-btn admin-btn-secondary">
+                    &larr; Quay lại danh sách
+                </a>
+            </div>
+
+            <!-- FORM CARD -->
+            <form action="/admin/users/save" method="POST" th:object="${userForm}">
+                <input type="hidden" th:field="*{id}">
+
+                <div class="admin-card" style="max-width: 800px;">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Thông Tin Tài Khoản &amp; Phân Quyền</h3>
+                    </div>
+                    <div style="padding: 24px;">
+                        <!-- Dòng 1: Username & Password -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 18px;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Tên đăng nhập <span style="color:#b91c1c">*</span>
+                                </label>
+                                <input type="text" th:field="*{username}" 
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" 
+                                       placeholder="Ví dụ: nguyenvana" required>
+                                <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Mật khẩu <span th:if="${userForm.id == null}" style="color:#b91c1c">*</span>
+                                </label>
+                                <input type="password" th:field="*{password}" 
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" 
+                                       th:placeholder="${userForm.id == null ? 'Nhập mật khẩu...' : 'Để trống nếu giữ nguyên mật khẩu cũ'}">
+                                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                                <div th:if="${userForm.id != null}" style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 4px;">
+                                    Chỉ nhập khi bạn muốn đổi mật khẩu mới cho tài khoản này.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dòng 2: Họ và tên & Vai trò -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 18px;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Họ và tên <span style="color:#b91c1c">*</span>
+                                </label>
+                                <input type="text" th:field="*{fullName}" 
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" 
+                                       placeholder="Nguyễn Văn A" required>
+                                <div th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Vai trò hệ thống <span style="color:#b91c1c">*</span>
+                                </label>
+                                <select th:field="*{role}" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem; background: #fff;" required>
+                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r.name() == 'ROLE_ADMIN' ? 'Quản Trị Viên (ROLE_ADMIN)' : 'Khách Hàng (ROLE_CUSTOMER)'}"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('role')}" th:errors="*{role}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Dòng 3: Email & Số điện thoại -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 18px;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Địa chỉ Email <span style="color:#b91c1c">*</span>
+                                </label>
+                                <input type="email" th:field="*{email}" 
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" 
+                                       placeholder="user@example.com" required>
+                                <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                    Số điện thoại
+                                </label>
+                                <input type="text" th:field="*{phone}" 
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" 
+                                       placeholder="0912345678">
+                                <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Dòng 4: Địa chỉ -->
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--admin-text-main); margin-bottom: 6px;">
+                                Địa chỉ giao hàng / cư trú
+                            </label>
+                            <input type="text" th:field="*{address}" 
+                                   style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-size: 0.9rem;" 
+                                   placeholder="Số nhà, tên đường, quận/huyện, tỉnh/thành phố...">
+                            <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" style="color:#b91c1c; font-size:0.8rem; margin-top:4px;"></div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--admin-border); padding-top: 20px;">
+                            <a href="/admin/users" class="admin-btn admin-btn-secondary">
+                                Hủy bỏ
+                            </a>
+                            <button type="submit" class="admin-btn admin-btn-primary" style="padding: 10px 24px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                <span th:text="${userForm.id == null ? 'Tạo Tài Khoản' : 'Cập Nhật Tài Khoản'}">Lưu Tài Khoản</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- DANH SÁCH ĐƠN HÀNG CỦA USER NÀY (NẾU CÓ) -->
+            <div th:if="${userOrders != null}" class="admin-card" style="max-width: 800px; margin-top: 28px;">
+                <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="admin-card-title">
+                        Lịch Sử Đơn Hàng Đã Đặt (<span th:text="${userOrders.size()}">0</span>)
+                    </h3>
+                    <a th:if="${!userOrders.isEmpty()}" th:href="@{/admin/orders(userId=${userForm.id})}" class="admin-btn admin-btn-secondary admin-btn-sm">
+                        Quản lý trạng thái các đơn này &rarr;
+                    </a>
+                </div>
+                <div th:if="${userOrders.isEmpty()}" style="padding: 24px; text-align: center; color: var(--admin-text-muted); font-size: 0.88rem;">
+                    Người dùng này chưa phát sinh đơn hàng nào trên hệ thống.
+                </div>
+                <div th:unless="${userOrders.isEmpty()}" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Thời gian đặt</th>
+                                <th>Địa chỉ giao hàng</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ord : ${userOrders}">
+                                <td>
+                                    <strong style="font-family: monospace; color: #0f172a;" th:text="${ord.orderCode}">ORD-123</strong>
+                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted);" th:text="${ord.paymentMethod}">COD</div>
+                                </td>
+                                <td style="font-size: 0.8rem; color: var(--admin-text-muted);" th:text="${#temporals.format(ord.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                                <td>
+                                    <div style="font-size: 0.82rem; max-width: 220px; line-height: 1.4; color: #334155;" th:text="${ord.shippingAddress}">Hà Nội</div>
+                                </td>
+                                <td>
+                                    <strong style="color: #0f172a;" th:text="${#numbers.formatDecimal(ord.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</strong>
+                                    <div style="font-size: 0.72rem; color: var(--admin-text-muted);" th:text="${ord.totalItemQuantity} + ' cuốn'">1 cuốn</div>
+                                </td>
+                                <td>
+                                    <span th:class="'admin-status-badge ' + ${ord.orderStatus.badgeClass}" th:text="${ord.orderStatus.displayName}">Chờ xử lý</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
+

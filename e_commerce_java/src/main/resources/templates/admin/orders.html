@@ -20,6 +20,26 @@
             <!-- Alerts -->
             <div th:replace="~{admin/layout :: alerts}"></div>
 
+            <!-- Filter Banner (khi lọc theo user) -->
+            <div th:if="${filteredUser != null}" 
+                 style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 18px; border-radius: var(--radius-sm); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: var(--radius-full); background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+                        <span th:text="${#strings.substring(filteredUser.fullName, 0, 1).toUpperCase()}">U</span>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.88rem; font-weight: 600; color: #1e3a8a;">
+                            Danh sách đơn hàng của khách hàng: <span th:text="${filteredUser.fullName}"></span>
+                            <span style="font-size: 0.78rem; font-weight: normal; color: #3b82f6;" th:text="'(@' + ${filteredUser.username} + ')'"></span>
+                        </div>
+                        <div style="font-size: 0.78rem; color: #60a5fa; margin-top: 2px;" th:text="'Tổng cộng ' + ${orders.size()} + ' đơn hàng đã đặt'">0 đơn hàng</div>
+                    </div>
+                </div>
+                <a href="/admin/orders" class="admin-btn admin-btn-secondary admin-btn-sm" style="background: #ffffff;">
+                    &larr; Xem tất cả đơn hàng
+                </a>
+            </div>
+
             <!-- Page Title -->
             <div style="margin-bottom: 24px;">
                 <h1 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">Quản Lý Đơn Hàng Đặt Mua</h1>
