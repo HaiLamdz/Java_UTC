@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Chi Tiết Đơn Hàng ' + ${order.orderCode} + ' - BookStore'">Chi Tiết Đơn Hàng</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v=11)}">
+    <link rel="stylesheet" th:href="@{/css/style.css(v=12)}">
 </head>
 <body>
 
@@ -60,7 +60,7 @@
         </div>
 
         <h3 style="font-size: 1.15rem; margin-bottom: 14px; color: var(--ink-900);">Ấn phẩm trong đơn hàng</h3>
-        <div style="background: #ffffff; border: 1px solid var(--paper-border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card);">
+        <div class="table-responsive" style="background: #ffffff; border: 1px solid var(--paper-border); border-radius: var(--radius-md); box-shadow: var(--shadow-card);">
             <table class="table-clean">
                 <thead>
                     <tr>
