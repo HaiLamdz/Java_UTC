@@ -1994,46 +1994,341 @@ button, input, select, textarea {
   color: var(--ink-500);
 }
 
-/* ================= RESPONSIVE ================= */
+/* ================= RESPONSIVE UTILITIES & BREAKPOINTS ================= */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.resp-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.vietqr-split-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.checkout-card-box {
+  background: #ffffff;
+  border: 1px solid var(--paper-border);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  box-shadow: var(--shadow-card);
+}
+
+.success-card-box {
+  max-width: 780px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid var(--paper-border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-card);
+}
+
 @media (max-width: 1024px) {
+  .container {
+    padding: 0 20px;
+  }
   .book-scroll-shelf .book-card {
     flex: 0 0 calc((100% - 56px) / 3);
-    min-width: 210px;
+    min-width: 205px;
   }
   .book-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 28px 20px;
   }
-  .detail-layout,
+  .detail-layout {
+    grid-template-columns: 320px 1fr;
+    gap: 32px;
+    padding: 28px;
+  }
   .cart-grid-layout,
   .editorial-banner {
     grid-template-columns: 1fr;
   }
   .footer-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 28px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Top bar */
+  .top-bar-inner {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .top-bar-inner > .top-bar-item:first-child {
+    display: none;
+  }
+  .top-bar-item {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Main Navbar */
   .navbar {
     flex-wrap: wrap;
     height: auto;
     padding: 12px 0;
+    gap: 10px 12px;
+  }
+  .logo-name {
+    font-size: 1.22rem;
+  }
+  .logo-sub {
+    font-size: 0.58rem;
+  }
+  .nav-links {
     gap: 12px;
+    margin-left: auto;
+  }
+  .nav-link {
+    font-size: 0.82rem;
+  }
+  .cart-btn {
+    padding: 7px 11px;
+    font-size: 0.8rem;
+    gap: 6px;
   }
   .search-bar {
     order: 3;
     max-width: 100%;
     flex: 0 0 100%;
   }
+  .category-nav-inner {
+    gap: 18px;
+    height: 38px;
+  }
+
+  /* Hero section */
+  .hero-fullscreen {
+    min-height: 430px;
+    padding: 48px 0 68px;
+  }
+  .hero-left-scrim {
+    background: linear-gradient(180deg, rgba(16, 14, 12, 0.72) 0%, rgba(16, 14, 12, 0.58) 65%, rgba(16, 14, 12, 0.78) 100%);
+  }
+  .hero-headline-white {
+    font-size: clamp(1.9rem, 7vw, 2.5rem);
+    margin-bottom: 22px;
+  }
+  .hero-actions-left {
+    width: 100%;
+    gap: 10px;
+  }
+  .btn-hero-primary,
+  .btn-hero-outline-white {
+    padding: 11px 18px;
+    font-size: 0.85rem;
+  }
+
+  /* Section & Editorial Banner */
+  .section-block {
+    padding: 36px 0 24px;
+  }
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .section-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .section-title {
+    font-size: 1.38rem;
+  }
+  .editorial-banner-text {
+    padding: 28px 22px;
+  }
+  .editorial-banner-text h2 {
+    font-size: 1.45rem;
+  }
+  .editorial-banner-media img {
+    max-height: 240px;
+  }
+
+  /* Catalog Filter */
+  .catalog-filter-bar {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  .catalog-filter-field,
+  .catalog-filter-search {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .catalog-filter-actions {
+    width: 100%;
+  }
+  .catalog-filter-actions .btn {
+    flex: 1;
+  }
+
+  /* Product Detail */
+  .breadcrumb-trail {
+    flex-wrap: wrap;
+    margin: 16px 0;
+    font-size: 0.76rem;
+  }
+  .detail-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px 16px;
+    margin-bottom: 32px;
+  }
+  .detail-cover-img {
+    max-width: 240px;
+    margin: 0 auto;
+  }
+  .detail-book-title {
+    font-size: 1.5rem;
+  }
+  .detail-meta-list {
+    gap: 10px 16px;
+    font-size: 0.82rem;
+  }
+  .variant-module {
+    padding: 14px;
+  }
+  .variant-module-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .variant-pills-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .detail-price-strip {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .detail-price-main {
+    font-size: 1.55rem;
+  }
+  .detail-sku-strip {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  .detail-actions-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .qty-stepper {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .qty-stepper button {
+    width: 48px;
+  }
+  .qty-stepper input {
+    flex: 1;
+  }
+
+  /* Cart, Checkout, VietQR & Auth */
+  .cart-table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-clean {
+    min-width: 560px;
+  }
+  .table-clean th,
+  .table-clean td {
+    padding: 12px;
+    font-size: 0.84rem;
+  }
+  .cart-summary-card,
+  .checkout-card-box {
+    padding: 18px 16px;
+  }
+  .success-card-box {
+    padding: 24px 16px;
+  }
+  .vietqr-split-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .vietqr-split-grid > div:first-child {
+    max-width: 210px;
+    margin: 0 auto;
+  }
+  .resp-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .auth-box {
+    margin: 24px auto 40px;
+    padding: 24px 18px;
+  }
+
+  /* AI Floating Button */
+  .ai-floating-launcher {
+    right: 14px;
+    bottom: 14px;
+    padding: 9px 14px;
+    font-size: 0.8rem;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 36px 0 24px;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-links li:first-child {
+    display: none; /* Ẩn bớt link Trang chủ vì đã có Logo */
+  }
+  .cart-btn span:not(.cart-badge) {
+    display: none; /* Gọn nút giỏ hàng chỉ hiện icon + số lượng trên màn nhỏ */
+  }
+  .book-scroll-shelf {
+    gap: 14px;
+  }
   .book-scroll-shelf .book-card {
-    flex: 0 0 calc((100% - 20px) / 2);
-    min-width: 165px;
+    flex: 0 0 calc((100% - 14px) / 2);
+    min-width: 148px;
   }
   .book-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px 16px;
+    gap: 20px 12px;
+  }
+  .book-card-cover-wrap {
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .book-card-title {
+    font-size: 0.92rem;
+  }
+  .variant-pills-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-actions-left a {
+    width: 100%;
+    justify-content: center;
   }
   .footer-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 }

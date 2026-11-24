@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Ký Tài Khoản Mới - BookStore</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v=8)}">
+    <link rel="stylesheet" th:href="@{/css/style.css(v=12)}">
 </head>
 <body>
 
@@ -28,7 +28,7 @@
                     <div class="form-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Lỗi</div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="resp-grid-2">
                     <div class="form-group">
                         <label class="form-label">Mật khẩu <span style="color:var(--crimson)">*</span></label>
                         <input type="password" th:field="*{password}" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
@@ -47,7 +47,7 @@
                     <div class="form-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Lỗi</div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="resp-grid-2">
                     <div class="form-group">
                         <label class="form-label">Địa chỉ Email <span style="color:var(--crimson)">*</span></label>
                         <input type="email" th:field="*{email}" class="form-control" placeholder="email@example.com" required>
