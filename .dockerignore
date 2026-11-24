@@ -1,0 +1,7 @@
+.git
+**/target
+**/uploads
+**/*application-local.properties
+.idea
+.vscode
+

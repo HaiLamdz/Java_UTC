@@ -4,6 +4,7 @@ import com.bookstore.model.*;
 import com.bookstore.repository.BookAiSummaryRepository;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.repository.CategoryRepository;
+import com.bookstore.repository.OrderRepository;
 import com.bookstore.repository.UserRepository;
 import com.bookstore.repository.VoucherRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Khởi tạo dữ liệu mẫu ban đầu (Data Seeder).
@@ -24,17 +26,20 @@ public class DataInitializer implements CommandLineRunner {
     private final BookRepository bookRepository;
     private final BookAiSummaryRepository bookAiSummaryRepository;
     private final VoucherRepository voucherRepository;
+    private final OrderRepository orderRepository;
 
     public DataInitializer(UserRepository userRepository,
                            CategoryRepository categoryRepository,
                            BookRepository bookRepository,
                            BookAiSummaryRepository bookAiSummaryRepository,
-                           VoucherRepository voucherRepository) {
+                           VoucherRepository voucherRepository,
+                           OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.bookRepository = bookRepository;
         this.bookAiSummaryRepository = bookAiSummaryRepository;
         this.voucherRepository = voucherRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -233,7 +238,50 @@ public class DataInitializer implements CommandLineRunner {
         book8.setAiSummary(createChaGiauChaNgheoSummary(book8));
         bookRepository.save(book8);
 
+        // 4. Tạo sẵn 4 đơn hàng mẫu trải đều các ngày để Biểu đồ Dashboard Admin hiển thị sinh động ngay khi deploy Cloud
+        seedSampleOrdersForFreshDb(customer, customer2, book1, book2, book3, book8);
+
         System.out.println(">>> Nạp dữ liệu mẫu hoàn tất thành công! Sẵn sàng sử dụng.");
+    }
+
+    private void seedSampleOrdersForFreshDb(User c1, User c2, Book b1, Book b2, Book b3, Book b8) {
+        if (orderRepository.count() > 0) {
+            return;
+        }
+        Order o1 = new Order("ORD-DEMO-1001", c1.getFullName(), c1.getPhone(), c1.getAddress(), "Giao giờ hành chính", "COD", c1);
+        o1.setOrderStatus(OrderStatus.COMPLETED);
+        o1.setPaymentStatus(PaymentStatus.PAID);
+        o1.setCreatedAt(LocalDateTime.now().minusDays(4));
+        o1.addItem(new OrderItem(o1, b1, b1.getVariants().get(1), 1));
+        o1.addItem(new OrderItem(o1, b2, b2.getVariants().get(0), 1));
+        o1.calculateTotal();
+        orderRepository.save(o1);
+
+        Order o2 = new Order("ORD-DEMO-1002", c2.getFullName(), c2.getPhone(), c2.getAddress(), "Bọc xốp kỹ làm quà tặng", "VIETQR", c2);
+        o2.setOrderStatus(OrderStatus.COMPLETED);
+        o2.setPaymentStatus(PaymentStatus.PAID);
+        o2.setCreatedAt(LocalDateTime.now().minusDays(3));
+        o2.addItem(new OrderItem(o2, b3, b3.getVariants().get(1), 1));
+        o2.calculateTotal();
+        orderRepository.save(o2);
+
+        Order o3 = new Order("ORD-DEMO-1003", c1.getFullName(), c1.getPhone(), c1.getAddress(), "Gọi trước khi giao", "VIETQR", c1);
+        o3.setOrderStatus(OrderStatus.SHIPPING);
+        o3.setPaymentStatus(PaymentStatus.PAID);
+        o3.setVoucherCode("SACHMOI15");
+        o3.setDiscountAmount(32250.0);
+        o3.setCreatedAt(LocalDateTime.now().minusDays(1));
+        o3.addItem(new OrderItem(o3, b3, b3.getVariants().get(0), 1));
+        o3.calculateTotal();
+        orderRepository.save(o3);
+
+        Order o4 = new Order("ORD-DEMO-1004", c2.getFullName(), c2.getPhone(), c2.getAddress(), "", "COD", c2);
+        o4.setOrderStatus(OrderStatus.PENDING);
+        o4.setPaymentStatus(PaymentStatus.UNPAID);
+        o4.setCreatedAt(LocalDateTime.now());
+        o4.addItem(new OrderItem(o4, b8, b8.getVariants().get(0), 2));
+        o4.calculateTotal();
+        orderRepository.save(o4);
     }
 
     private void seedInitialVouchersIfEmpty() {
